@@ -1,0 +1,3 @@
+# SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="19a2", ATTR{idProduct}=="5001", GROUP="usb"
+SUBSYSTEM=="usb", ACTION=="add", ATTR{idVendor}=="19a2", ATTR{idProduct}=="5001", MODE="0666"
+

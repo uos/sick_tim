@@ -1,0 +1,8 @@
+To give all users write access to the Sick TiM 300 device, run the following
+commands:
+
+    sudo cp 81-sick-tim3xx.rules /etc/udev/rules.d/
+    sudo udevadm control --reload-rules
+
+This will allow you to communicate with the laser scanner without running the
+node as root.
