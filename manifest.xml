@@ -11,6 +11,6 @@
 
   <depend package="roscpp" />
   <depend package="sensor_msgs" />
+
+  <rosdep name="libusb1.0" />
 </package>
-
-

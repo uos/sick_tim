@@ -34,6 +34,11 @@
  *
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <libusb-1.0/libusb.h>
+
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 
