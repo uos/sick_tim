@@ -32,6 +32,8 @@
  *         Jochen Sprickerhof <jochen@sprickerhof.de>
  *         Martin Günther <mguenthe@uos.de>
  *
+ * Based on the TiM communication example by SICK AG.
+ *
  */
 
 #include <stdio.h>
@@ -82,7 +84,7 @@ ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t prod
     int result = libusb_get_device_descriptor(devices[i], &desc);
     if (result < 0)
     {
-      fprintf(stderr, "LIBUSB - Failed to get device descriptor");
+      ROS_ERROR("LIBUSB - Failed to get device descriptor");
     }
 
     if (desc.idVendor == vendorID && desc.idProduct == 0x5001)
@@ -94,7 +96,7 @@ ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t prod
       resultDevices = (libusb_device **)realloc(resultDevices, sizeof(libusb_device *) + (numberOfResultDevices + 1));
       if (resultDevices == NULL)
       {
-        fprintf(stderr, "LIBUSB - Failed to allocate memory for the device result list.");
+        ROS_ERROR("LIBUSB - Failed to allocate memory for the device result list.");
       }
       else
       {
@@ -141,9 +143,9 @@ void freeSOPASDeviceList(libusb_device **list)
 void printUSBDeviceDetails(struct libusb_device_descriptor desc)
 {
 
-  printf("Device Class: 0x%x\n", desc.bDeviceClass);
-  printf("VendorID:     0x%x\n", desc.idVendor);
-  printf("ProductID:    0x%x\n", desc.idProduct);
+  ROS_INFO("Device Class: 0x%x", desc.bDeviceClass);
+  ROS_INFO("VendorID:     0x%x", desc.idVendor);
+  ROS_INFO("ProductID:    0x%x", desc.idProduct);
 }
 
 /*
@@ -158,8 +160,8 @@ void printUSBInterfaceDetails(libusb_device* device)
    */
   libusb_get_config_descriptor(device, 0, &config);
 
-  printf("Interfaces: %i\n", (int)config->bNumInterfaces);
-  printf("----------------------------------------\n");
+  ROS_INFO("Interfaces: %i", (int)config->bNumInterfaces);
+  ROS_INFO("----------------------------------------");
 
   const struct libusb_interface *interface;
   const struct libusb_interface_descriptor *interface_descriptor;
@@ -170,29 +172,29 @@ void printUSBInterfaceDetails(libusb_device* device)
   {
 
     interface = &config->interface[i];
-    printf("Number of alternate settings: %i\n", interface->num_altsetting);
+    ROS_INFO("Number of alternate settings: %i", interface->num_altsetting);
 
     for (j = 0; j < interface->num_altsetting; j++)
     {
 
       interface_descriptor = &interface->altsetting[j];
 
-      printf("Interface number: %i\n", (int)interface_descriptor->bInterfaceNumber);
-      printf("Number of endpoints: %i\n", (int)interface_descriptor->bNumEndpoints);
+      ROS_INFO("Interface number: %i", (int)interface_descriptor->bInterfaceNumber);
+      ROS_INFO("Number of endpoints: %i", (int)interface_descriptor->bNumEndpoints);
 
       for (k = 0; k < interface_descriptor->bNumEndpoints; k++)
       {
 
         endpoint_descriptor = &interface_descriptor->endpoint[k];
-        printf("Descriptor Type: %i\n", endpoint_descriptor->bDescriptorType);
-        printf("EP Address: %i\n", endpoint_descriptor->bEndpointAddress);
+        ROS_INFO("Descriptor Type: %i", endpoint_descriptor->bDescriptorType);
+        ROS_INFO("EP Address: %i", endpoint_descriptor->bEndpointAddress);
       }
     }
 
     if (i < config->bNumInterfaces - 1)
     {
 
-      printf("----------------------------------------\n");
+      ROS_INFO("----------------------------------------");
     }
   }
 
@@ -214,22 +216,22 @@ void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** device
     int result = libusb_get_device_descriptor(devices[i], &desc);
     if (result < 0)
     {
-      fprintf(stderr, "LIBUSB - Failed to get device descriptor");
+      ROS_ERROR("LIBUSB - Failed to get device descriptor");
     }
     if (result == 0)
     {
-      printf("SICK AG - TIM3XX - [%i]\n", (i + 1));
-      printf("----------------------------------------\n");
+      ROS_INFO("SICK AG - TIM3XX - [%i]", (i + 1));
+      ROS_INFO("----------------------------------------");
       printUSBDeviceDetails(desc);
-      printf("----------------------------------------\n");
+      ROS_INFO("----------------------------------------");
       printUSBInterfaceDetails(devices[i]);
-      printf("----------------------------------------\n");
+      ROS_INFO("----------------------------------------");
     }
   }
 
   if (numberOfDevices == 0)
   {
-    printf("LIBUSB - No SICK TIM3xx device connected.\n");
+    ROS_INFO("LIBUSB - No SICK TIM3xx device connected.");
   }
 }
 
@@ -246,7 +248,7 @@ int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, u
   /*
    * Write a SOPAS variable read request to the device.
    */
-  printf("\nLIBUSB - Write data... %s\n", request);
+  ROS_DEBUG("\nLIBUSB - Write data... %s", request);
 
   int actual = 0;
   int requestLength = strlen(request);
@@ -254,7 +256,7 @@ int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, u
                                 &actual, 0);
   if (result != 0 || actual != requestLength)
   {
-    fprintf(stderr, "LIBUSB - Write Error: %i.\n", result);
+    ROS_ERROR("LIBUSB - Write Error: %i.", result);
   }
 
   /*
@@ -263,11 +265,11 @@ int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, u
   result = libusb_bulk_transfer(device_handle, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual, timeout);
   if (result != 0)
   {
-    fprintf(stderr, "LIBUSB - Read Error: %i.\n", result);
+    ROS_ERROR("LIBUSB - Read Error: %i.", result);
   }
 
   receiveBuffer[actual] = 0;
-  printf("LIBUSB - Read data...  %s\n\n", receiveBuffer);
+  ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
 
   return result;
 }
@@ -290,7 +292,7 @@ int main(int argc, char **argv)
   int result = libusb_init(&ctx);
   if (result != 0)
   {
-    printf("LIBUSB - Initialization failed with the following error code: %i.\n", result);
+    ROS_ERROR("LIBUSB - Initialization failed with the following error code: %i.", result);
   }
 
   /*
@@ -326,19 +328,19 @@ int main(int argc, char **argv)
     libusb_open(devices[0], &device_handle);
     if (device_handle == NULL)
     {
-      fprintf(stderr, "\nLIBUSB - Cannot open device\n");
+      ROS_ERROR("\nLIBUSB - Cannot open device");
     }
     else
     {
-      printf("\nLIBUSB - Device opened\n");
+      ROS_DEBUG("\nLIBUSB - Device opened");
     }
 
     if (libusb_kernel_driver_active(device_handle, 0) == 1)
     {
-      printf("LIBUSB - Kernel driver active\n");
+      ROS_DEBUG("LIBUSB - Kernel driver active");
       if (libusb_detach_kernel_driver(device_handle, 0) == 0)
       {
-        printf("LIBUSB - Kernel driver detached!\n");
+        ROS_DEBUG("LIBUSB - Kernel driver detached!");
       }
     }
 
@@ -348,11 +350,11 @@ int main(int argc, char **argv)
     result = libusb_claim_interface(device_handle, 0);
     if (result < 0)
     {
-      fprintf(stderr, "LIBUSB - Cannot claim interface\n");
+      ROS_ERROR("LIBUSB - Cannot claim interface");
     }
     else
     {
-      printf("LIBUSB - Claimed interface\n");
+      ROS_INFO("LIBUSB - Claimed interface");
     }
 
     /*
@@ -362,7 +364,7 @@ int main(int argc, char **argv)
     result = sendSOPASCommand(device_handle, requestDeviceIdent, 500);
     if (result != 0)
     {
-      fprintf(stderr, "SOPAS - Error reading variable 'DeviceIdent'.\n");
+      ROS_ERROR("SOPAS - Error reading variable 'DeviceIdent'.");
     }
 
     /*
@@ -372,7 +374,7 @@ int main(int argc, char **argv)
     result = sendSOPASCommand(device_handle, requestSerialNumber, 500);
     if (result != 0)
     {
-      fprintf(stderr, "SOPAS - Error reading variable 'SerialNumber'.\n");
+      ROS_ERROR("SOPAS - Error reading variable 'SerialNumber'.");
     }
 
     /*
@@ -382,7 +384,7 @@ int main(int argc, char **argv)
     result = sendSOPASCommand(device_handle, requestFirmwareVersion, 500);
     if (result != 0)
     {
-      fprintf(stderr, "SOPAS - Error reading variable 'FirmwareVersion'.\n");
+      ROS_ERROR("SOPAS - Error reading variable 'FirmwareVersion'.");
     }
 
     /*
@@ -392,33 +394,32 @@ int main(int argc, char **argv)
     result = sendSOPASCommand(device_handle, requestScanData, 500);
     if (result != 0)
     {
-      fprintf(stderr, "SOPAS - Error reading variable 'LMDscandata'.\n");
+      ROS_ERROR("SOPAS - Error reading variable 'LMDscandata'.");
     }
 
     int result = 0;
     unsigned char receiveBuffer[65536];
     int actual = 0;
-    int i;
     static size_t NUM_FIELDS = 580;
     char* fields[NUM_FIELDS];
     unsigned int count;
 
-    // TODO: while (ros::ok())
-    for (i = 0; i < 1; i++)
+    while (ros::ok())
     {
       result = libusb_bulk_transfer(device_handle, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual, 500);
       if (result != 0)
       {
-        fprintf(stderr, "LIBUSB - Read Error: %i.\n", result);
+        ROS_ERROR("LIBUSB - Read Error: %i.", result);
+        return -1;
       }
 
       receiveBuffer[actual] = 0;
-      printf("LIBUSB - Read data...  %s\n\n", receiveBuffer);
+      // ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
 
       // ----- tokenize
       count = 0;
       fields[count] = strtok((char *)receiveBuffer, " ");
-      printf("%d: %s ", count, fields[count]);
+      // ROS_DEBUG("%d: %s ", count, fields[count]);
 
       while (fields[count] != NULL)
       {
@@ -427,12 +428,11 @@ int main(int argc, char **argv)
           break;
 
         fields[count] = strtok(NULL, " ");
-        printf("%d: %s ", count, fields[count]);
+        // ROS_DEBUG("%d: %s ", count, fields[count]);
       }
-      printf("\n");
 
       if (count != NUM_FIELDS)
-        printf("Error: received %d fields (expected: %d)", count, NUM_FIELDS);
+        ROS_ERROR("Error: received %d fields (expected: %d)", count, NUM_FIELDS);
 
       // ----- read fields into msg
 
@@ -461,45 +461,51 @@ int main(int argc, char **argv)
       unsigned short scanning_freq = -1;
       sscanf(fields[16], "%hx", &scanning_freq);
       msg.scan_time = 1.0 / (scanning_freq / 100.0);
-      printf("hex: %s, scanning_freq: %d, scan_time: %f\n", fields[16], scanning_freq, msg.scan_time);
+      // ROS_DEBUG("hex: %s, scanning_freq: %d, scan_time: %f", fields[16], scanning_freq, msg.scan_time);
 
 
       // 17: Measurement Frequency (36)
       unsigned short measurement_freq = -1;
       sscanf(fields[17], "%hx", &measurement_freq);
       msg.time_increment = 1.0 / (measurement_freq * 100.0);
-      printf("measurement_freq: %d, time_increment: %f\n", measurement_freq, msg.time_increment);
+      // ROS_DEBUG("measurement_freq: %d, time_increment: %f", measurement_freq, msg.time_increment);
 
       // 18: Number of encoders (0)
       // 19: Number of 16 bit channels (1)
       // 20: Measured data contents (DIST1)
 
       // 21: Scaling factor (3F800000)
-      unsigned int scaling_factor_int = -1;
-      sscanf(fields[21], "%x", &scaling_factor_int);
-
-      float scaling_factor = reinterpret_cast<float&>(scaling_factor_int);
-      printf("hex: %s, scaling_factor_int: %d, scaling_factor: %f\n", fields[21], scaling_factor_int, scaling_factor);
+      // ignored for now (is always 1.0):
+//      unsigned int scaling_factor_int = -1;
+//      sscanf(fields[21], "%x", &scaling_factor_int);
+//
+//      float scaling_factor = reinterpret_cast<float&>(scaling_factor_int);
+//      // ROS_DEBUG("hex: %s, scaling_factor_int: %d, scaling_factor: %f", fields[21], scaling_factor_int, scaling_factor);
 
       // 22: Scaling offset (00000000) -- always 0
       // 23: Starting angle (FFF92230)
       int starting_angle = -1;
       sscanf(fields[23], "%x", &starting_angle);
       msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI;
-      printf("starting_angle: %d, angle_min: %f\n", starting_angle, msg.angle_min);
+      // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);
 
       // 24: Angular step width (2710)
       unsigned short angular_step_width = -1;
       sscanf(fields[24], "%hx", &angular_step_width);
       msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
       msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment;
-      printf("angular_step_width: %d, angle_increment: %f, angle_max: %f\n", angular_step_width, msg.angle_increment, msg.angle_max);
+      // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
 
       // 25: Number of data (10F)
-      // 26..296: Data_1 .. Data_n
 
-      // TODO: msg.ranges
+      // 26..296: Data_1 .. Data_n
+      msg.ranges.resize(271);
+      for (int j = 0; j < 271; ++j) {
+        unsigned short range;
+        sscanf(fields[j + 26], "%hx", &range);
+        msg.ranges[j] = range / 1000.0;
+      }
 
       // 297: Number of 8 bit channels (1)
       // 298: Measured data contents (RSSI1)
@@ -510,7 +516,12 @@ int main(int argc, char **argv)
       // 303: Number of data (10F)
       // 304..574: Data_1 .. Data_n
 
-      // TODO: msg.intensities
+      msg.intensities.resize(271);
+      for (int j = 0; j < 271; ++j) {
+        unsigned short intensity;
+        sscanf(fields[j + 304], "%hx", &intensity);
+        msg.intensities[j] = intensity;
+      }
 
       // 575: Position (0)
       // 576: Name (0)
@@ -519,7 +530,8 @@ int main(int argc, char **argv)
       // 579: Event information (0)
       // <ETX> (\x03)
 
-      // TODO: read data, fill msg
+      msg.range_min = 0.05;
+      msg.range_max = 4.0;
 
       pub.publish(msg);
 
@@ -535,7 +547,7 @@ int main(int argc, char **argv)
     result = sendSOPASCommand(device_handle, requestScanData0, 500);
     if (result != 0)
     {
-      fprintf(stderr, "SOPAS - Error stopping streaming.\n");
+      ROS_ERROR("SOPAS - Error stopping streaming.");
     }
 
     /*
@@ -544,9 +556,9 @@ int main(int argc, char **argv)
     result = libusb_release_interface(device_handle, 0);
     if (result != 0)
     {
-      fprintf(stderr, "LIBUSB - Cannot Release Interface\n");
+      ROS_ERROR("LIBUSB - Cannot Release Interface");
     }
-    printf("LIBUSB - Released Interface\n");
+    ROS_INFO("LIBUSB - Released Interface");
 
     /*
      * Close the device handle.
@@ -564,7 +576,7 @@ int main(int argc, char **argv)
    */
   libusb_exit(ctx);
 
-  printf("\nSICK AG - TIM3xx - Communication example finished.");
+  ROS_INFO("\nsick_tim3xx driver exiting.");
 
   return EXIT_SUCCESS;
 }
