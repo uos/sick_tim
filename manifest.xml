@@ -1,0 +1,15 @@
+<package>
+  <description brief="sick_tim3xx">
+
+     sick_tim3xx
+
+  </description>
+  <author>Jochen Sprickerhof, Martin Günther</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/sick_tim3xx</url>
+
+  <depend package="sensor_msgs" />
+</package>
+
+

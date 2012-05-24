@@ -1,0 +1,8 @@
+<stack>
+  <description brief="sick_tim3xx">sick_tim3xx</description>
+  <author>Maintained by Jochen Sprickerhof and Martin Günther</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/sick_tim3xx</url>
+  <depend stack="ros" />
+</stack>
