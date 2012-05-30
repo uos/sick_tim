@@ -220,7 +220,7 @@ void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** device
     }
     if (result == 0)
     {
-      ROS_INFO("SICK AG - TIM3XX - [%i]", (i + 1));
+      ROS_INFO("SICK AG - TIM3XX - [%zu]", (i + 1));
       ROS_INFO("----------------------------------------");
       printUSBDeviceDetails(desc);
       ROS_INFO("----------------------------------------");
@@ -248,7 +248,7 @@ int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, u
   /*
    * Write a SOPAS variable read request to the device.
    */
-  ROS_DEBUG("\nLIBUSB - Write data... %s", request);
+  ROS_DEBUG("LIBUSB - Write data... %s", request);
 
   int actual = 0;
   int requestLength = strlen(request);
@@ -328,11 +328,11 @@ int main(int argc, char **argv)
     libusb_open(devices[0], &device_handle);
     if (device_handle == NULL)
     {
-      ROS_ERROR("\nLIBUSB - Cannot open device");
+      ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim3xx/udev/README");
     }
     else
     {
-      ROS_DEBUG("\nLIBUSB - Device opened");
+      ROS_DEBUG("LIBUSB - Device opened");
     }
 
     if (libusb_kernel_driver_active(device_handle, 0) == 1)
@@ -402,7 +402,7 @@ int main(int argc, char **argv)
     int actual = 0;
     static size_t NUM_FIELDS = 580;
     char* fields[NUM_FIELDS];
-    unsigned int count;
+    size_t count;
 
     while (ros::ok())
     {
@@ -432,7 +432,7 @@ int main(int argc, char **argv)
       }
 
       if (count != NUM_FIELDS)
-        ROS_ERROR("Error: received %d fields (expected: %d)", count, NUM_FIELDS);
+        ROS_ERROR("Error: received %zu fields (expected: %zu)", count, NUM_FIELDS);
 
       // ----- read fields into msg
 
@@ -576,7 +576,7 @@ int main(int argc, char **argv)
    */
   libusb_exit(ctx);
 
-  ROS_INFO("\nsick_tim3xx driver exiting.");
+  ROS_INFO("sick_tim3xx driver exiting.");
 
   return EXIT_SUCCESS;
 }
