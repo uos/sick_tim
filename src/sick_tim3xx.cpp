@@ -281,7 +281,7 @@ int main(int argc, char **argv)
   ros::NodeHandle pn("~");
 
   std::string frame_id;
-  pn.param(std::string("frame"), frame_id, std::string("laser_link"));
+  pn.param(std::string("frame"), frame_id, std::string("/laser_link"));
 
   ros::Publisher pub = n.advertise<sensor_msgs::LaserScan>("scan", 1000);
 
