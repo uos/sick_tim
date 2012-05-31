@@ -55,7 +55,6 @@ void printUSBInterfaceDetails(libusb_device* device);
 void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** devices);
 int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, unsigned int timeout);
 
-
 /**
  * Returns a list of USB devices currently attached to the system and matching the given vendorID and productID.
  */
@@ -85,6 +84,7 @@ ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t prod
     if (result < 0)
     {
       ROS_ERROR("LIBUSB - Failed to get device descriptor");
+      continue;
     }
 
     if (desc.idVendor == vendorID && desc.idProduct == 0x5001)
@@ -217,6 +217,7 @@ void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** device
     if (result < 0)
     {
       ROS_ERROR("LIBUSB - Failed to get device descriptor");
+      continue;
     }
     if (result == 0)
     {
@@ -240,9 +241,7 @@ void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** device
  */
 int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, unsigned int timeout)
 {
-
   int result = 0;
-
   unsigned char receiveBuffer[65536];
 
   /*
@@ -257,6 +256,7 @@ int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, u
   if (result != 0 || actual != requestLength)
   {
     ROS_ERROR("LIBUSB - Write Error: %i.", result);
+    return result;
   }
 
   /*
@@ -266,6 +266,7 @@ int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, u
   if (result != 0)
   {
     ROS_ERROR("LIBUSB - Read Error: %i.", result);
+    return result;
   }
 
   receiveBuffer[actual] = 0;
@@ -285,7 +286,7 @@ int main(int argc, char **argv)
 
   ros::Publisher pub = n.advertise<sensor_msgs::LaserScan>("scan", 1000);
 
-   /*
+  /*
    * Create and initialize a new LIBUSB session.
    */
   libusb_context *ctx = NULL;
@@ -293,6 +294,7 @@ int main(int argc, char **argv)
   if (result != 0)
   {
     ROS_ERROR("LIBUSB - Initialization failed with the following error code: %i.", result);
+    return EXIT_FAILURE;
   }
 
   /*
@@ -329,6 +331,7 @@ int main(int argc, char **argv)
     if (device_handle == NULL)
     {
       ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim3xx/udev/README");
+      return EXIT_FAILURE;
     }
     else
     {
@@ -351,6 +354,7 @@ int main(int argc, char **argv)
     if (result < 0)
     {
       ROS_ERROR("LIBUSB - Cannot claim interface");
+      return EXIT_FAILURE;
     }
     else
     {
@@ -394,11 +398,13 @@ int main(int argc, char **argv)
     result = sendSOPASCommand(device_handle, requestScanData, 500);
     if (result != 0)
     {
-      ROS_ERROR("SOPAS - Error reading variable 'LMDscandata'.");
+      ROS_ERROR("SOPAS - Error starting to stream 'LMDscandata'.");
+      return EXIT_FAILURE;
     }
 
     int result = 0;
     unsigned char receiveBuffer[65536];
+    unsigned char receiveBufferCopy[65536]; // only for debugging
     int actual = 0;
     static size_t NUM_FIELDS = 580;
     char* fields[NUM_FIELDS];
@@ -409,14 +415,25 @@ int main(int argc, char **argv)
       result = libusb_bulk_transfer(device_handle, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual, 500);
       if (result != 0)
       {
-        ROS_ERROR("LIBUSB - Read Error: %i.", result);
-        return -1;
+        if (result == LIBUSB_ERROR_TIMEOUT)
+        {
+          ROS_WARN("LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
+          continue;
+        }
+        else
+        {
+          ROS_ERROR("LIBUSB - Read Error: %i.", result);
+          return EXIT_FAILURE;
+        }
       }
 
       receiveBuffer[actual] = 0;
       // ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
 
       // ----- tokenize
+      strncpy((char*)receiveBufferCopy, (char*)receiveBuffer, 65535); // receiveBuffer will be changed by strtok
+      receiveBufferCopy[65535] = 0;
+
       count = 0;
       fields[count] = strtok((char *)receiveBuffer, " ");
       // ROS_DEBUG("%d: %s ", count, fields[count]);
@@ -424,23 +441,32 @@ int main(int argc, char **argv)
       while (fields[count] != NULL)
       {
         count++;
-        if  (count > NUM_FIELDS)
+        if (count > NUM_FIELDS)
           break;
 
         fields[count] = strtok(NULL, " ");
         // ROS_DEBUG("%d: %s ", count, fields[count]);
       }
 
-      if (count != NUM_FIELDS)
-        ROS_ERROR("Error: received %zu fields (expected: %zu)", count, NUM_FIELDS);
+      if (count < NUM_FIELDS)
+      {
+        ROS_WARN(
+            "received less fields than expected fields (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
+        ROS_DEBUG("received message was: %s", receiveBufferCopy);
+        continue;
+      }
+      else if (count > NUM_FIELDS)
+      {
+        ROS_WARN("received more fields than expected (expected: %zu), ignoring scan", NUM_FIELDS);
+        ROS_DEBUG("received message was: %s", receiveBufferCopy);
+        continue;
+      }
 
       // ----- read fields into msg
-
       sensor_msgs::LaserScan msg;
 
       msg.header.frame_id = frame_id;
       msg.header.stamp = ros::Time::now();
-
 
       // <STX> (\x02)
       // 0: Type of command (SN)
@@ -462,7 +488,6 @@ int main(int argc, char **argv)
       sscanf(fields[16], "%hx", &scanning_freq);
       msg.scan_time = 1.0 / (scanning_freq / 100.0);
       // ROS_DEBUG("hex: %s, scanning_freq: %d, scan_time: %f", fields[16], scanning_freq, msg.scan_time);
-
 
       // 17: Measurement Frequency (36)
       unsigned short measurement_freq = -1;
@@ -496,12 +521,12 @@ int main(int argc, char **argv)
       msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment;
       // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
-
       // 25: Number of data (10F)
 
       // 26..296: Data_1 .. Data_n
       msg.ranges.resize(271);
-      for (int j = 0; j < 271; ++j) {
+      for (int j = 0; j < 271; ++j)
+      {
         unsigned short range;
         sscanf(fields[j + 26], "%hx", &range);
         msg.ranges[j] = range / 1000.0;
@@ -517,7 +542,8 @@ int main(int argc, char **argv)
       // 304..574: Data_1 .. Data_n
 
       msg.intensities.resize(271);
-      for (int j = 0; j < 271; ++j) {
+      for (int j = 0; j < 271; ++j)
+      {
         unsigned short intensity;
         sscanf(fields[j + 304], "%hx", &intensity);
         msg.intensities[j] = intensity;
@@ -536,8 +562,6 @@ int main(int argc, char **argv)
       pub.publish(msg);
 
       ros::spinOnce(); // do we need this?
-
-
     }
 
     /*
@@ -558,7 +582,10 @@ int main(int argc, char **argv)
     {
       ROS_ERROR("LIBUSB - Cannot Release Interface");
     }
-    ROS_INFO("LIBUSB - Released Interface");
+    else
+    {
+      ROS_INFO("LIBUSB - Released Interface");
+    }
 
     /*
      * Close the device handle.
