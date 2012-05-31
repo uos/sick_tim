@@ -93,7 +93,7 @@ ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t prod
       /*
        * Add the matching device to the function result list and increase the device reference count.
        */
-      resultDevices = (libusb_device **)realloc(resultDevices, sizeof(libusb_device *) + (numberOfResultDevices + 1));
+      resultDevices = (libusb_device **)realloc(resultDevices, sizeof(libusb_device *) * (numberOfResultDevices + 2));
       if (resultDevices == NULL)
       {
         ROS_ERROR("LIBUSB - Failed to allocate memory for the device result list.");
