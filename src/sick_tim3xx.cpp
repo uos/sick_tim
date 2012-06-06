@@ -577,14 +577,14 @@ int SickTim3xx::loopOnce()
   // 23: Starting angle (FFF92230)
   int starting_angle = -1;
   sscanf(fields[23], "%x", &starting_angle);
-  msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI;
+  msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI/2;
   // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);
 
   // 24: Angular step width (2710)
   unsigned short angular_step_width = -1;
   sscanf(fields[24], "%hx", &angular_step_width);
   msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment;
+  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment - M_PI/2;
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
   // 25: Number of data (10F)
