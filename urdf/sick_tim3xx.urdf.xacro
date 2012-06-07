@@ -16,8 +16,16 @@
     </inertial>
   </xacro:macro>
 
+
   <!-- distance between base plate and laser center (= center of mesh) -->
   <property name="sick_tim3xx_z_offset" value="0.05609" />
+
+  <property name="sick_tim3xx_length" value="0.06" />
+  <property name="sick_tim3xx_width" value="0.06" />
+  <property name="sick_tim3xx_height" value="0.08" />
+
+  <property name="sick_tim3xx_mass" value="0.150" />
+
 
   <link name="laser_mount_link">
     <inertial>
@@ -48,7 +56,7 @@
         <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
       </geometry>
     </collision>
-    <xacro:box_inertial x="0.06" y="0.06" z="0.08" mass="0.15" origin="0 0 -0.026" />
+    <xacro:box_inertial x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
   </link>
 
   <gazebo reference="laser">
