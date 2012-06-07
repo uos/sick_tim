@@ -59,7 +59,7 @@
     <xacro:box_inertial_with_origin x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
   </link>
 
-  <gazebo reference="laser">
+  <gazebo reference="laser_link">
     <material value="Gazebo/Blue" />
 
     <sensor:ray name="laser">
@@ -82,7 +82,7 @@
         <alwaysOn>true</alwaysOn>
         <updateRate>15.0</updateRate>
         <topicName>scan</topicName>
-        <frameName>laser</frameName>
+        <frameName>laser_link</frameName>
         <interface:laser name="gazebo_ros_laser_iface" />
       </controller:gazebo_ros_laser>
     </sensor:ray>
