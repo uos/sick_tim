@@ -6,7 +6,7 @@
   name="sick_tim3xx">
 
 
-  <xacro:macro name="box_inertial" params="x y z mass origin">
+  <xacro:macro name="box_inertial_with_origin" params="x y z mass origin">
     <inertial>
       <mass value="${mass}" />
       <origin xyz="${origin}" />
@@ -56,7 +56,7 @@
         <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
       </geometry>
     </collision>
-    <xacro:box_inertial x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
+    <xacro:box_inertial_with_origin x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
   </link>
 
   <gazebo reference="laser">
