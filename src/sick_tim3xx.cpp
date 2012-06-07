@@ -532,7 +532,7 @@ int SickTim3xx::loopOnce()
   sensor_msgs::LaserScan msg;
 
   msg.header.frame_id = frame_id_;
-  msg.header.stamp = ros::Time::now();
+  ros::Time start_time = ros::Time::now();
 
   // <STX> (\x02)
   // 0: Type of command (SN)
@@ -560,6 +560,11 @@ int SickTim3xx::loopOnce()
   sscanf(fields[17], "%hx", &measurement_freq);
   msg.time_increment = 1.0 / (measurement_freq * 100.0);
   // ROS_DEBUG("measurement_freq: %d, time_increment: %f", measurement_freq, msg.time_increment);
+
+  // adjust start time:
+  // - last scan point = now  ==>  first scan point = now - 271 * time increment
+  // - also just assume 0.001 s USB latency between scanner and PC for now
+  msg.header.stamp = start_time - ros::Duration().fromSec(271 * msg.time_increment - 0.001);
 
   // 18: Number of encoders (0)
   // 19: Number of 16 bit channels (1)
