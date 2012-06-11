@@ -82,7 +82,7 @@ SickTim3xx::SickTim3xx() :
     ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL)
 {
   ros::NodeHandle pn("~");
-  pn.param(std::string("frame"), frame_id_, std::string("/laser_link"));
+  pn.param(std::string("frame"), frame_id_, std::string("/laser"));
 
   pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
 }

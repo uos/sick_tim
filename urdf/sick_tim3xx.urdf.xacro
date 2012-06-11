@@ -2,19 +2,7 @@
 <robot xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
   xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
   xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
-  xmlns:xacro="http://ros.org/wiki/xacro"
-  name="sick_tim3xx">
-
-
-  <xacro:macro name="box_inertial_with_origin" params="x y z mass origin">
-    <inertial>
-      <mass value="${mass}" />
-      <origin xyz="${origin}" />
-      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
-        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
-        izz="${0.0833333 * mass * (x*x + y*y)}" />
-    </inertial>
-  </xacro:macro>
+  xmlns:xacro="http://ros.org/wiki/xacro">
 
 
   <!-- distance between base plate and laser center (= center of mesh) -->
@@ -25,66 +13,78 @@
   <property name="sick_tim3xx_height" value="0.08" />
 
   <property name="sick_tim3xx_mass" value="0.150" />
-
-
-  <link name="laser_mount_link">
+  
+  
+  <xacro:macro name="box_inertial_with_origin" params="x y z mass origin">
     <inertial>
-      <mass value="0.001" />
-      <origin xyz="0 0 0" />
-      <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
-        iyy="0.000001" iyz="0.0" izz="0.000001" />
+      <mass value="${mass}" />
+      <origin xyz="${origin}" />
+      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
+        izz="${0.0833333 * mass * (x*x + y*y)}" />
     </inertial>
-  </link>
+  </xacro:macro>
 
-  <joint name="laser_joint" type="fixed">
-    <parent link="laser_mount_link" />
-    <child link="laser_link" />
-    <origin rpy="0 0 0" xyz="0 0 ${sick_tim3xx_z_offset}"/>
-  </joint>
-
-  <link name="laser_link">
-    <visual>
-      <geometry>
-        <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
-      </geometry>
-      <material name="blue" >
-        <color rgba="0 0 1 1" />
-      </material>
-    </visual>
-    <collision>
-      <geometry>
-        <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
-      </geometry>
-    </collision>
-    <xacro:box_inertial_with_origin x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
-  </link>
-
-  <gazebo reference="laser_link">
-    <material value="Gazebo/Blue" />
-
-    <sensor:ray name="laser">
-      <rayCount>271</rayCount>
-      <rangeCount>271</rangeCount>
-      <laserCount>1</laserCount>
-
-      <origin>0.0 0.0 0.0</origin>
-      <displayRays>false</displayRays>
-
-      <minAngle>-135</minAngle>
-      <maxAngle>135</maxAngle>
-
-      <minRange>0.05</minRange>
-      <maxRange>4.0</maxRange>
-      <resRange>0.01</resRange>
-      <updateRate>15.0</updateRate>
-      <controller:gazebo_ros_laser name="gazebo_ros_laser_controller" plugin="libgazebo_ros_laser.so">
-        <gaussianNoise>0.005</gaussianNoise>
-        <alwaysOn>true</alwaysOn>
+  <xacro:macro name="sick_tim3xx" params="laser_link">
+    <link name="laser_mount_link">
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+          iyy="0.000001" iyz="0.0" izz="0.000001" />
+      </inertial>
+    </link>
+  
+    <joint name="laser_joint" type="fixed">
+      <parent link="laser_mount_link" />
+      <child link="${laser_link}" />
+      <origin rpy="0 0 0" xyz="0 0 ${sick_tim3xx_z_offset}"/>
+    </joint>
+  
+    <link name="${laser_link}">
+      <visual>
+        <geometry>
+          <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
+        </geometry>
+        <material name="blue" >
+          <color rgba="0 0 1 1" />
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
+        </geometry>
+      </collision>
+      <xacro:box_inertial_with_origin x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
+    </link>
+  
+    <gazebo reference="${laser_link}">
+      <material value="Gazebo/Blue" />
+  
+      <sensor:ray name="laser">
+        <rayCount>271</rayCount>
+        <rangeCount>271</rangeCount>
+        <laserCount>1</laserCount>
+  
+        <origin>0.0 0.0 0.0</origin>
+        <displayRays>false</displayRays>
+  
+        <minAngle>-135</minAngle>
+        <maxAngle>135</maxAngle>
+  
+        <minRange>0.05</minRange>
+        <maxRange>4.0</maxRange>
+        <resRange>0.01</resRange>
         <updateRate>15.0</updateRate>
-        <topicName>scan</topicName>
-        <frameName>laser_link</frameName>
-        <interface:laser name="gazebo_ros_laser_iface" />
-      </controller:gazebo_ros_laser>
-    </sensor:ray>
-  </gazebo>
+        <controller:gazebo_ros_laser name="gazebo_ros_laser_controller" plugin="libgazebo_ros_laser.so">
+          <gaussianNoise>0.005</gaussianNoise>
+          <alwaysOn>true</alwaysOn>
+          <updateRate>15.0</updateRate>
+          <topicName>scan</topicName>
+          <frameName>${laser_link}</frameName>
+          <interface:laser name="gazebo_ros_laser_iface" />
+        </controller:gazebo_ros_laser>
+      </sensor:ray>
+    </gazebo>
+  </xacro:macro>
 </robot>

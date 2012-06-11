@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_tim3xx)/urdf/sick_tim3xx.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_tim3xx)/urdf/example.urdf.xacro'" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
   <node name="sick_tim3xx" pkg="sick_tim3xx" type="sick_tim3xx" respawn="false" output="screen" />
