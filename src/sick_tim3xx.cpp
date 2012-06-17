@@ -44,6 +44,12 @@
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
 
+#include <dynamic_reconfigure/server.h>
+#include <sick_tim3xx/SickTim3xxConfig.h>
+
+namespace sick_tim3xx
+{
+
 class SickTim3xx
 {
 public:
@@ -51,6 +57,8 @@ public:
   virtual ~SickTim3xx();
   int init_usb();
   int loopOnce();
+  void check_angle_range(SickTim3xxConfig &conf);
+  void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
 
 private:
   static const unsigned int USB_TIMEOUT = 500; // milliseconds
@@ -68,8 +76,9 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher pub_;
 
-  // Parameters
-  std::string frame_id_;
+  // Dynamic Reconfigure
+  SickTim3xxConfig config_;
+  dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig> dynamic_reconfigure_server_;
 
   // libusb
   libusb_context *ctx_;
@@ -81,8 +90,9 @@ private:
 SickTim3xx::SickTim3xx() :
     ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL)
 {
-  ros::NodeHandle pn("~");
-  pn.param(std::string("frame"), frame_id_, std::string("/laser"));
+  dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig>::CallbackType f;
+  f = boost::bind(&sick_tim3xx::SickTim3xx::update_config, this, _1, _2);
+  dynamic_reconfigure_server_.setCallback(f);
 
   pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
 }
@@ -477,8 +487,10 @@ int SickTim3xx::loopOnce()
   static const size_t NUM_FIELDS = 580;
   char* fields[NUM_FIELDS];
   size_t count;
+  static unsigned int iteration_count = 0;
 
-  result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length, USB_TIMEOUT);
+  result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length,
+                                USB_TIMEOUT);
   if (result != 0)
   {
     if (result == LIBUSB_ERROR_TIMEOUT)
@@ -492,6 +504,10 @@ int SickTim3xx::loopOnce()
       return EXIT_FAILURE;
     }
   }
+
+  // ----- if requested, skip frames
+  if (iteration_count++ % (config_.skip + 1) != 0)
+    return EXIT_SUCCESS;
 
   receiveBuffer[actual_length] = 0;
   // ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
@@ -531,8 +547,10 @@ int SickTim3xx::loopOnce()
   // ----- read fields into msg
   sensor_msgs::LaserScan msg;
 
-  msg.header.frame_id = frame_id_;
-  ros::Time start_time = ros::Time::now();
+  msg.header.frame_id = config_.frame_id;
+  ROS_DEBUG("publishing with frame_id %s", config_.frame_id.c_str());
+
+  ros::Time start_time = ros::Time::now(); // will be adjusted in the end
 
   // <STX> (\x02)
   // 0: Type of command (SN)
@@ -561,11 +579,6 @@ int SickTim3xx::loopOnce()
   msg.time_increment = 1.0 / (measurement_freq * 100.0);
   // ROS_DEBUG("measurement_freq: %d, time_increment: %f", measurement_freq, msg.time_increment);
 
-  // adjust start time:
-  // - last scan point = now  ==>  first scan point = now - 271 * time increment
-  // - also just assume 0.001 s USB latency between scanner and PC for now
-  msg.header.stamp = start_time - ros::Duration().fromSec(271 * msg.time_increment - 0.001);
-
   // 18: Number of encoders (0)
   // 19: Number of 16 bit channels (1)
   // 20: Measured data contents (DIST1)
@@ -582,25 +595,43 @@ int SickTim3xx::loopOnce()
   // 23: Starting angle (FFF92230)
   int starting_angle = -1;
   sscanf(fields[23], "%x", &starting_angle);
-  msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI/2;
+  msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2;
   // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);
 
   // 24: Angular step width (2710)
   unsigned short angular_step_width = -1;
   sscanf(fields[24], "%hx", &angular_step_width);
   msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment - M_PI/2;
+  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment - M_PI / 2;
+
+  // adjust angle_min to min_ang config param
+  int index_min = 0;
+  while (msg.angle_min + msg.angle_increment < config_.min_ang)
+  {
+    msg.angle_min += msg.angle_increment;
+    index_min++;
+  }
+
+  // adjust angle_max to max_ang config param
+  int index_max = 270;
+  while (msg.angle_max - msg.angle_increment > config_.max_ang)
+  {
+    msg.angle_max -= msg.angle_increment;
+    index_max--;
+  }
+
+  ROS_DEBUG("index_min: %d, index_max: %d", index_min, index_max);
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
   // 25: Number of data (10F)
 
   // 26..296: Data_1 .. Data_n
-  msg.ranges.resize(271);
-  for (int j = 0; j < 271; ++j)
+  msg.ranges.resize(index_max - index_min + 1);
+  for (int j = index_min; j <= index_max; ++j)
   {
     unsigned short range;
     sscanf(fields[j + 26], "%hx", &range);
-    msg.ranges[j] = range / 1000.0;
+    msg.ranges[j - index_min] = range / 1000.0;
   }
 
   // 297: Number of 8 bit channels (1)
@@ -611,13 +642,15 @@ int SickTim3xx::loopOnce()
   // 302: Angular step width (2710)
   // 303: Number of data (10F)
   // 304..574: Data_1 .. Data_n
-
-  msg.intensities.resize(271);
-  for (int j = 0; j < 271; ++j)
+  if (config_.intensity)
   {
-    unsigned short intensity;
-    sscanf(fields[j + 304], "%hx", &intensity);
-    msg.intensities[j] = intensity;
+    msg.intensities.resize(index_max - index_min + 1);
+    for (int j = index_min; j <= index_max; ++j)
+    {
+      unsigned short intensity;
+      sscanf(fields[j + 304], "%hx", &intensity);
+      msg.intensities[j - index_min] = intensity;
+    }
   }
 
   // 575: Position (0)
@@ -630,20 +663,48 @@ int SickTim3xx::loopOnce()
   msg.range_min = 0.05;
   msg.range_max = 4.0;
 
+  // ----- adjust start time
+  // - last scan point = now  ==>  first scan point = now - 271 * time increment
+  msg.header.stamp = start_time - ros::Duration().fromSec(271 * msg.time_increment);
+
+  // - shift forward to time of first published scan point
+  msg.header.stamp += ros::Duration().fromSec((double)index_min * msg.time_increment);
+
+  // - add time offset (to account for USB latency etc.)
+  msg.header.stamp += ros::Duration().fromSec(config_.time_offset);
+
   pub_.publish(msg);
   return EXIT_SUCCESS;
 }
+
+void SickTim3xx::check_angle_range(SickTim3xxConfig &conf)
+{
+  if (conf.min_ang > conf.max_ang)
+  {
+    ROS_WARN("Minimum angle must be greater than maximum angle. Adjusting min_ang.");
+    conf.min_ang = conf.max_ang;
+  }
+}
+
+void SickTim3xx::update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level)
+{
+  check_angle_range(new_config);
+  config_ = new_config;
+}
+
+} // end namespace sick_tim3xx
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "sick_tim3xx");
 
-  SickTim3xx s;
+  sick_tim3xx::SickTim3xx s;
   s.init_usb();
 
   int result = EXIT_SUCCESS;
   while (ros::ok() && (result == EXIT_SUCCESS))
   {
+    ros::spinOnce();
     result = s.loopOnce();
   }
 

@@ -12,6 +12,8 @@
 
   <depend package="roscpp" />
   <depend package="sensor_msgs" />
+  <depend package="dynamic_reconfigure" />
+  <depend package="driver_base" />
 
   <rosdep name="libusb1.0" />
 </package>

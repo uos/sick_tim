@@ -8,3 +8,10 @@ lib/
 msg_gen/
 srv_gen/
 *.pyc
+cfg/SickTim3xx.cfgc
+cfg/cpp/sick_tim3xx/SickTim3xxConfig.h
+docs/SickTim3xxConfig-usage.dox
+docs/SickTim3xxConfig.dox
+docs/SickTim3xxConfig.wikidoc
+src/sick_tim3xx/cfg/SickTim3xxConfig.py
+src/sick_tim3xx/cfg/__init__.py
