@@ -602,7 +602,7 @@ int SickTim3xx::loopOnce()
   unsigned short angular_step_width = -1;
   sscanf(fields[24], "%hx", &angular_step_width);
   msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment - M_PI / 2;
+  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment;
 
   // adjust angle_min to min_ang config param
   int index_min = 0;
