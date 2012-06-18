@@ -518,13 +518,13 @@ int SickTim3xx::loopOnce()
   {
     ROS_WARN(
         "received less fields than expected fields (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    ROS_DEBUG("received message was: %s", receiveBufferCopy);
+    // ROS_DEBUG("received message was: %s", receiveBufferCopy);
     return EXIT_SUCCESS; // return success to continue looping
   }
   else if (count > NUM_FIELDS)
   {
     ROS_WARN("received more fields than expected (expected: %zu), ignoring scan", NUM_FIELDS);
-    ROS_DEBUG("received message was: %s", receiveBufferCopy);
+    // ROS_DEBUG("received message was: %s", receiveBufferCopy);
     return EXIT_SUCCESS; // return success to continue looping
   }
 
