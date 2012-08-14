@@ -15,3 +15,4 @@ docs/SickTim3xxConfig.dox
 docs/SickTim3xxConfig.wikidoc
 src/sick_tim3xx/cfg/SickTim3xxConfig.py
 src/sick_tim3xx/cfg/__init__.py
+src/sick_tim3xx/__init__.py
