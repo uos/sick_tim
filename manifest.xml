@@ -15,5 +15,5 @@
   <depend package="dynamic_reconfigure" />
   <depend package="driver_base" />
 
-  <rosdep name="libusb1.0" />
+  <rosdep name="libusb-1.0-dev" />
 </package>
