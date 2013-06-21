@@ -699,9 +699,8 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "sick_tim3xx");
 
   sick_tim3xx::SickTim3xx s;
-  s.init_usb();
 
-  int result = EXIT_SUCCESS;
+  int result = s.init_usb();
   while (ros::ok() && (result == EXIT_SUCCESS))
   {
     ros::spinOnce();
