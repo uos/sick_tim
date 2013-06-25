@@ -41,8 +41,9 @@
 #include <string.h>
 #include <libusb-1.0/libusb.h>
 
-#include "ros/ros.h"
-#include "sensor_msgs/LaserScan.h"
+#include <ros/ros.h>
+#include <sensor_msgs/LaserScan.h>
+#include <std_msgs/String.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <sick_tim3xx/SickTim3xxConfig.h>
@@ -75,6 +76,8 @@ private:
   // ROS
   ros::NodeHandle nh_;
   ros::Publisher pub_;
+  ros::Publisher datagram_pub_;
+  bool publish_datagram_;
 
   // Dynamic Reconfigure
   SickTim3xxConfig config_;
@@ -94,6 +97,13 @@ SickTim3xx::SickTim3xx() :
   f = boost::bind(&sick_tim3xx::SickTim3xx::update_config, this, _1, _2);
   dynamic_reconfigure_server_.setCallback(f);
 
+  // datagram publisher (only for debug)
+  ros::NodeHandle pn("~");
+  pn.param<bool>("publish_datagram", publish_datagram_, false);
+  if (publish_datagram_)
+	  datagram_pub_ = nh_.advertise<std_msgs::String>("datagram", 1000);
+
+  // scan publisher
   pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
 }
 
@@ -510,7 +520,11 @@ int SickTim3xx::loopOnce()
     return EXIT_SUCCESS;
 
   receiveBuffer[actual_length] = 0;
-  // ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
+  if (publish_datagram_) {
+	  std_msgs::String datagram_msg;
+	  datagram_msg.data = std::string(reinterpret_cast<char*>(receiveBuffer));
+	  datagram_pub_.publish(datagram_msg);
+  }
 
   // ----- tokenize
   strncpy((char*)receiveBufferCopy, (char*)receiveBuffer, 65535); // receiveBuffer will be changed by strtok
