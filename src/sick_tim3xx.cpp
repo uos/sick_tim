@@ -496,6 +496,7 @@ int SickTim3xx::loopOnce()
   int actual_length = 0;
   static const size_t NUM_FIELDS = 580;
   char* fields[NUM_FIELDS];
+  char* cur_field;
   size_t count;
   static unsigned int iteration_count = 0;
 
@@ -531,17 +532,18 @@ int SickTim3xx::loopOnce()
   receiveBufferCopy[65535] = 0;
 
   count = 0;
-  fields[count] = strtok((char *)receiveBuffer, " ");
+  cur_field = strtok((char *)receiveBuffer, " ");
+  fields[count] = cur_field;
   // ROS_DEBUG("%d: %s ", count, fields[count]);
 
-  while (fields[count] != NULL)
+  while (cur_field != NULL)
   {
     count++;
-    if (count > NUM_FIELDS)
-      break;
+    cur_field = strtok(NULL, " ");
+    if (count <= NUM_FIELDS)
+      fields[count] = cur_field;
 
-    fields[count] = strtok(NULL, " ");
-    // ROS_DEBUG("%d: %s ", count, fields[count]);
+    // ROS_DEBUG("%zu: %s ", count, cur_field);
   }
 
   if (count < NUM_FIELDS)
@@ -553,7 +555,7 @@ int SickTim3xx::loopOnce()
   }
   else if (count > NUM_FIELDS)
   {
-    ROS_WARN("received more fields than expected (expected: %zu), ignoring scan", NUM_FIELDS);
+    ROS_WARN("received more fields than expected (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
     // ROS_DEBUG("received message was: %s", receiveBufferCopy);
     return EXIT_SUCCESS; // return success to continue looping
   }
