@@ -58,6 +58,7 @@ public:
   virtual ~SickTim3xx();
   int init_usb();
   int loopOnce();
+  int parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config, sensor_msgs::LaserScan &msg);
   void check_angle_range(SickTim3xxConfig &conf);
   void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
 
@@ -492,12 +493,7 @@ int SickTim3xx::loopOnce()
 {
   int result = 0;
   unsigned char receiveBuffer[65536];
-  unsigned char receiveBufferCopy[65536]; // only for debugging
   int actual_length = 0;
-  static const size_t NUM_FIELDS = 580;
-  char* fields[NUM_FIELDS];
-  char* cur_field;
-  size_t count;
   static unsigned int iteration_count = 0;
 
   result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length,
@@ -527,14 +523,31 @@ int SickTim3xx::loopOnce()
 	  datagram_pub_.publish(datagram_msg);
   }
 
+  sensor_msgs::LaserScan msg;
+  int success = parse_datagram((char*)receiveBuffer, (size_t)actual_length, config_, msg);
+  if (success == EXIT_SUCCESS)
+    pub_.publish(msg);
+
+  return EXIT_SUCCESS;
+}
+
+int SickTim3xx::parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config, sensor_msgs::LaserScan &msg)
+{
+  static const size_t NUM_FIELDS = 580;
+  char* fields[NUM_FIELDS];
+  char* cur_field;
+  size_t count;
+
+  char datagram_copy[datagram_length + 1]; // only for debugging
+
   // ----- tokenize
-  strncpy((char*)receiveBufferCopy, (char*)receiveBuffer, 65535); // receiveBuffer will be changed by strtok
-  receiveBufferCopy[65535] = 0;
+  strncpy(datagram_copy, datagram, datagram_length); // receiveBuffer will be changed by strtok
+  datagram_copy[datagram_length] = 0;
 
   count = 0;
-  cur_field = strtok((char *)receiveBuffer, " ");
+  cur_field = strtok(datagram, " ");
   fields[count] = cur_field;
-  // ROS_DEBUG("%d: %s ", count, fields[count]);
+  // ROS_DEBUG("%zu: %s ", count, fields[count]);
 
   while (cur_field != NULL)
   {
@@ -550,21 +563,19 @@ int SickTim3xx::loopOnce()
   {
     ROS_WARN(
         "received less fields than expected fields (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    // ROS_DEBUG("received message was: %s", receiveBufferCopy);
+    // ROS_DEBUG("received message was: %s", datagram_copy);
     return EXIT_SUCCESS; // return success to continue looping
   }
   else if (count > NUM_FIELDS)
   {
     ROS_WARN("received more fields than expected (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    // ROS_DEBUG("received message was: %s", receiveBufferCopy);
+    // ROS_DEBUG("received message was: %s", datagram_copy);
     return EXIT_SUCCESS; // return success to continue looping
   }
 
   // ----- read fields into msg
-  sensor_msgs::LaserScan msg;
-
-  msg.header.frame_id = config_.frame_id;
-  ROS_DEBUG("publishing with frame_id %s", config_.frame_id.c_str());
+  msg.header.frame_id = config.frame_id;
+  ROS_DEBUG("publishing with frame_id %s", config.frame_id.c_str());
 
   ros::Time start_time = ros::Time::now(); // will be adjusted in the end
 
@@ -622,7 +633,7 @@ int SickTim3xx::loopOnce()
 
   // adjust angle_min to min_ang config param
   int index_min = 0;
-  while (msg.angle_min + msg.angle_increment < config_.min_ang)
+  while (msg.angle_min + msg.angle_increment < config.min_ang)
   {
     msg.angle_min += msg.angle_increment;
     index_min++;
@@ -630,7 +641,7 @@ int SickTim3xx::loopOnce()
 
   // adjust angle_max to max_ang config param
   int index_max = 270;
-  while (msg.angle_max - msg.angle_increment > config_.max_ang)
+  while (msg.angle_max - msg.angle_increment > config.max_ang)
   {
     msg.angle_max -= msg.angle_increment;
     index_max--;
@@ -658,7 +669,7 @@ int SickTim3xx::loopOnce()
   // 302: Angular step width (2710)
   // 303: Number of data (10F)
   // 304..574: Data_1 .. Data_n
-  if (config_.intensity)
+  if (config.intensity)
   {
     msg.intensities.resize(index_max - index_min + 1);
     for (int j = index_min; j <= index_max; ++j)
@@ -687,9 +698,8 @@ int SickTim3xx::loopOnce()
   msg.header.stamp += ros::Duration().fromSec((double)index_min * msg.time_increment);
 
   // - add time offset (to account for USB latency etc.)
-  msg.header.stamp += ros::Duration().fromSec(config_.time_offset);
+  msg.header.stamp += ros::Duration().fromSec(config.time_offset);
 
-  pub_.publish(msg);
   return EXIT_SUCCESS;
 }
 
