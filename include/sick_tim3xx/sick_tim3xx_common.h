@@ -50,6 +50,7 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <sick_tim3xx/SickTim3xxConfig.h>
+#include <sick_tim3xx/abstract_parser.h>
 
 namespace sick_tim3xx
 {
@@ -57,11 +58,10 @@ namespace sick_tim3xx
 class SickTim3xxCommon
 {
 public:
-  SickTim3xxCommon();
+  SickTim3xxCommon(AbstractParser* parser);
   virtual ~SickTim3xxCommon();
   int init_usb();
   int loopOnce();
-  int parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config, sensor_msgs::LaserScan &msg);
   void check_angle_range(SickTim3xxConfig &conf);
   void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
 
@@ -92,6 +92,9 @@ private:
   ssize_t numberOfDevices_;
   libusb_device **devices_;
   libusb_device_handle *device_handle_;
+
+  // Parser
+  AbstractParser* parser_;
 };
 
 } /* namespace sick_tim3xx */
