@@ -33,5 +33,6 @@ gencfg()
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
-rosbuild_add_executable(sick_tim3xx src/sick_tim3xx.cpp)
+rosbuild_add_executable(sick_tim3xx src/sick_tim3xx.cpp src/sick_tim3xx_common.cpp)
+
 target_link_libraries(sick_tim3xx usb-1.0)
