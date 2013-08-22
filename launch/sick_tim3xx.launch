@@ -3,7 +3,7 @@
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_tim3xx)/urdf/example.urdf.xacro'" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
-  <node name="sick_tim3xx" pkg="sick_tim3xx" type="sick_tim3xx" respawn="false" output="screen">
+  <node name="sick_tim310s01" pkg="sick_tim3xx" type="sick_tim310s01" respawn="false" output="screen">
     <!-- default values: -->
     <!--
       <param name="min_ang" type="double" value="-2.35619449019" />
