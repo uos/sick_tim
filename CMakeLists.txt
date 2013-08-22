@@ -34,6 +34,8 @@ gencfg()
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 rosbuild_add_executable(sick_tim310s01 src/sick_tim310s01.cpp src/sick_tim3xx_common.cpp src/sick_tim310s01_parser.cpp src/abstract_parser.cpp)
+rosbuild_add_executable(sick_tim310 src/sick_tim310.cpp src/sick_tim3xx_common.cpp src/sick_tim310_parser.cpp src/abstract_parser.cpp)
 rosbuild_add_executable(sick_tim3xx_datagram_test test/sick_tim3xx_datagram_test.cpp src/sick_tim310s01_parser.cpp src/abstract_parser.cpp)
 
 target_link_libraries(sick_tim310s01 usb-1.0)
+target_link_libraries(sick_tim310 usb-1.0)
