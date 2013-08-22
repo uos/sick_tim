@@ -41,7 +41,7 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "sick_tim3xx");
+  ros::init(argc, argv, "sick_tim310s01");
 
   sick_tim3xx::SickTim310S01Parser* parser = new sick_tim3xx::SickTim310S01Parser();
   sick_tim3xx::SickTim3xxCommon s((sick_tim3xx::AbstractParser*)parser);
