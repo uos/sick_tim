@@ -460,7 +460,7 @@ int SickTim3xxCommon::loopOnce()
     else
     {
       ROS_ERROR("LIBUSB - Read Error: %i.", result);
-      return EXIT_FAILURE;
+      return EXIT_FAILURE; // return failure to exit node
     }
   }
 
@@ -481,7 +481,7 @@ int SickTim3xxCommon::loopOnce()
   if (success == EXIT_SUCCESS)
     pub_.publish(msg);
 
-  return EXIT_SUCCESS;
+  return EXIT_SUCCESS; // return success to continue looping
 }
 
 void SickTim3xxCommon::check_angle_range(SickTim3xxConfig &conf)
