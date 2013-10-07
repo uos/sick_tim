@@ -5,7 +5,7 @@
   xmlns:xacro="http://ros.org/wiki/xacro"
   name="sick_tim3xx">
 
-  <include filename="$(find sick_tim3xx)/urdf/sick_tim3xx.urdf.xacro" />
+  <xacro:include filename="$(find sick_tim3xx)/urdf/sick_tim3xx.urdf.xacro" />
 
   <xacro:sick_tim3xx laser_link="laser" />
 </robot>
