@@ -185,7 +185,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // <ETX> (\x03)
 
   msg.range_min = 0.05;
-  msg.range_max = 4.0;
+  msg.range_max = 10.0;
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - 271 * time increment
