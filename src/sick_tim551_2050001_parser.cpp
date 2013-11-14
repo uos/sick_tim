@@ -26,32 +26,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 21.08.2013
+ *  Created on: 14.11.2013
  *
  *      Author: Martin Günther <mguenthe@uos.de>
  *
  */
 
-#include <sick_tim3xx/sick_tim310_parser.h>
+#include <sick_tim3xx/sick_tim551_2050001_parser.h>
 
 #include <ros/ros.h>
 
 namespace sick_tim3xx
 {
 
-SickTim310Parser::SickTim310Parser() :
+SickTim5512050001Parser::SickTim5512050001Parser() :
     AbstractParser()
 {
 }
 
-SickTim310Parser::~SickTim310Parser()
+SickTim5512050001Parser::~SickTim5512050001Parser()
 {
 }
 
-int SickTim310Parser::parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config,
+int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config,
                                      sensor_msgs::LaserScan &msg)
 {
-  static const size_t NUM_FIELDS = 592;
+  static const size_t NUM_FIELDS = 306;
   char* fields[NUM_FIELDS];
   char* cur_field;
   size_t count;
@@ -121,16 +121,16 @@ int SickTim310Parser::parse_datagram(char* datagram, size_t datagram_length, Sic
   // ROS_DEBUG("hex: %s, scanning_freq: %d, scan_time: %f", fields[16], scanning_freq, msg.scan_time);
 
   // 17: Measurement Frequency (36)
-  unsigned short measurement_freq = 36;
-  //sscanf(fields[17], "%hx", &measurement_freq);
+  unsigned short measurement_freq = -1;
+  sscanf(fields[17], "%hx", &measurement_freq);
   msg.time_increment = 1.0 / (measurement_freq * 100.0);
   // ROS_DEBUG("measurement_freq: %d, time_increment: %f", measurement_freq, msg.time_increment);
 
   // 18: Number of encoders (0)
   // 19: Number of 16 bit channels (1)
-  // 22: Measured data contents (DIST1)
+  // 20: Measured data contents (DIST1)
 
-  // 23: Scaling factor (3F800000)
+  // 21: Scaling factor (3F800000)
   // ignored for now (is always 1.0):
 //      unsigned int scaling_factor_int = -1;
 //      sscanf(fields[21], "%x", &scaling_factor_int);
@@ -138,16 +138,16 @@ int SickTim310Parser::parse_datagram(char* datagram, size_t datagram_length, Sic
 //      float scaling_factor = reinterpret_cast<float&>(scaling_factor_int);
 //      // ROS_DEBUG("hex: %s, scaling_factor_int: %d, scaling_factor: %f", fields[21], scaling_factor_int, scaling_factor);
 
-  // 24: Scaling offset (00000000) -- always 0
-  // 25: Starting angle (FFF92230)
+  // 22: Scaling offset (00000000) -- always 0
+  // 23: Starting angle (FFF92230)
   int starting_angle = -1;
-  sscanf(fields[25], "%x", &starting_angle);
+  sscanf(fields[23], "%x", &starting_angle);
   msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2;
   // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);
 
-  // 26: Angular step width (2710)
+  // 24: Angular step width (2710)
   unsigned short angular_step_width = -1;
-  sscanf(fields[26], "%hx", &angular_step_width);
+  sscanf(fields[24], "%hx", &angular_step_width);
   msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
   msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment;
 
@@ -170,41 +170,18 @@ int SickTim310Parser::parse_datagram(char* datagram, size_t datagram_length, Sic
   ROS_DEBUG("index_min: %d, index_max: %d", index_min, index_max);
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
-  // 27: Number of data (10F)
+  // 25: Number of data (10F)
 
-  // 28..298: Data_1 .. Data_n
+  // 26..296: Data_1 .. Data_n
   msg.ranges.resize(index_max - index_min + 1);
   for (int j = index_min; j <= index_max; ++j)
   {
     unsigned short range;
-    sscanf(fields[j + 28], "%hx", &range);
+    sscanf(fields[j + 26], "%hx", &range);
     msg.ranges[j - index_min] = range / 1000.0;
   }
 
-  // ---297: Number of 8 bit channels (1)---
-  // 299: Measured data contents (RSSI1)
-  // 300: Scaling factor (3F800000)
-  // 301: Scaling offset (00000000)
-  // 302: Starting angle (FFF92230)
-  // 303: Angular step width (2710)
-  // 304: Number of data (10F)
-  // 305..575: Data_1 .. Data_n
-  if (config.intensity)
-  {
-    msg.intensities.resize(index_max - index_min + 1);
-    for (int j = index_min; j <= index_max; ++j)
-    {
-      unsigned short intensity;
-      sscanf(fields[j + 305], "%hx", &intensity);
-      msg.intensities[j - index_min] = intensity;
-    }
-  }
-
-  // 576: Position (0)
-  // 577: Name (0)
-  // 578: Comment (0)
-  // 579: Time information (0)
-  // 579: Event information (0)
+  // 297-305: unknown
   // <ETX> (\x03)
 
   msg.range_min = 0.05;
