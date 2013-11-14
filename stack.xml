@@ -1,13 +1,13 @@
 <stack>
-  <description brief="A driver for the SICK TiM 3xx laser scanner">
+  <description brief="Drivers for the SICK TiM series of laser scanners">
 
-     A ROS driver for the SICK TiM 3xx series of laser scanners. Currently, the
-     only supported scanner is the TiM310.
+     A ROS driver for the SICK TiM series of laser scanners. Currently, the
+     package supports several types of TiM310 and TiM551 scanners.
 
   </description>
   <author>Maintained by Jochen Sprickerhof and Martin Günther</author>
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/sick_tim3xx</url>
+  <url>http://wiki.ros.org/sick_tim3xx</url>
   <depend stack="ros" />
 </stack>
