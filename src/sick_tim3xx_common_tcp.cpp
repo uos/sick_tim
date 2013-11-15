@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2013, Osnabrück University
+ * Copyright (C) 2013, Freiburg University
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * 
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of Osnabrück University nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,35 +26,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 14.11.2013
+ *  Created on: 15.11.2013
  *
- *      Author:
- *         Martin Günther <mguenthe@uos.de>
- *
+ *      Authors:
+ *         Christian Dornhege <c.dornhege@googlemail.com>
  */
 
-#include <sick_tim3xx/sick_tim3xx_common_usb.h>
 #include <sick_tim3xx/sick_tim3xx_common_tcp.h>
-#include <sick_tim3xx/sick_tim551_2050001_parser.h>
 
-int main(int argc, char **argv)
+namespace sick_tim3xx
 {
-  ros::init(argc, argv, "sick_tim551_2050001");
 
-  sick_tim3xx::SickTim5512050001Parser* parser = new sick_tim3xx::SickTim5512050001Parser();
-  sick_tim3xx::SickTim3xxCommon* s = NULL;
-  if(argc > 1 && strcmp(argv[1], "-tcp") == 0)
-      s = new sick_tim3xx::SickTim3xxCommonTcp(parser);
-  else
-      s = new sick_tim3xx::SickTim3xxCommonUsb(parser);
+SickTim3xxCommonTcp::SickTim3xxCommonTcp(AbstractParser* parser) : SickTim3xxCommon(parser)
+{
+}
 
-  int result = s->init();
-  while (ros::ok() && (result == EXIT_SUCCESS))
-  {
-    ros::spinOnce();
-    result = s->loopOnce();
-  }
+SickTim3xxCommonTcp::~SickTim3xxCommonTcp()
+{
+  stop_scanner();
+  close_device();
+}
 
-  delete s;
+int SickTim3xxCommonTcp::close_device()
+{
+  int result = 0;
   return result;
 }
+
+/**
+ * Send a SOPAS command to the device and print out the response to the console.
+ */
+int SickTim3xxCommonTcp::sendSOPASCommand(const char* request)
+{
+  int result = 0;
+  unsigned char receiveBuffer[65536];
+
+  /*
+   * Write a SOPAS variable read request to the device.
+   */
+
+  return result;
+}
+
+int SickTim3xxCommonTcp::init_device()
+{
+
+  return EXIT_SUCCESS;
+}
+
+int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
+{
+
+  return EXIT_SUCCESS;
+}
+
+} /* namespace sick_tim3xx */
