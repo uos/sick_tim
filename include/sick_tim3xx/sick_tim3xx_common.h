@@ -42,7 +42,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libusb-1.0/libusb.h>
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
@@ -60,23 +59,29 @@ class SickTim3xxCommon
 public:
   SickTim3xxCommon(AbstractParser* parser);
   virtual ~SickTim3xxCommon();
-  int init_usb();
+  virtual int init();
   int loopOnce();
   void check_angle_range(SickTim3xxConfig &conf);
   void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
 
+protected:
+  virtual int init_device() = 0;
+  virtual int init_scanner();
+  virtual int stop_scanner();
+  virtual int close_device() = 0;
+
+  /// Send a SOPAS command to the device and print out the response to the console.
+  virtual int sendSOPASCommand(const char* request) = 0;
+
+  /// Read a datagram from the device.
+  /**
+   * \param [in] receiveBuffer data buffer to fill
+   * \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
+   * \param [out] actual_length the actual amount of data written
+   */
+  virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length) = 0;
+
 private:
-  static const unsigned int USB_TIMEOUT = 500; // milliseconds
-
-  ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t productID, libusb_device ***list);
-  void freeSOPASDeviceList(libusb_device **list);
-
-  void printUSBDeviceDetails(struct libusb_device_descriptor desc);
-  void printUSBInterfaceDetails(libusb_device* device);
-  void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** devices);
-
-  int sendSOPASCommand(libusb_device_handle* device_handle, const char* request, unsigned int timeout);
-
   // ROS
   ros::NodeHandle nh_;
   ros::Publisher pub_;
@@ -86,12 +91,6 @@ private:
   // Dynamic Reconfigure
   SickTim3xxConfig config_;
   dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig> dynamic_reconfigure_server_;
-
-  // libusb
-  libusb_context *ctx_;
-  ssize_t numberOfDevices_;
-  libusb_device **devices_;
-  libusb_device_handle *device_handle_;
 
   // Parser
   AbstractParser* parser_;
