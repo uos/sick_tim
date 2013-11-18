@@ -66,6 +66,8 @@ protected:
   virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length);
 
 private:
+  int socket_fd_;
+  std::string hostname_;
 };
 
 } /* namespace sick_tim3xx */
