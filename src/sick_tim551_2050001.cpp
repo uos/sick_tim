@@ -41,10 +41,18 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "sick_tim551_2050001");
 
+  // check for TCP - use if ~hostname is set.
+  ros::NodeHandle nhPriv("~");
+  bool useTCP = false;
+  std::string hostname;
+  if(nhPriv.getParam("hostname", hostname)) {
+      useTCP = true;
+  }
+
   sick_tim3xx::SickTim5512050001Parser* parser = new sick_tim3xx::SickTim5512050001Parser();
   sick_tim3xx::SickTim3xxCommon* s = NULL;
-  if(argc > 1 && strcmp(argv[1], "-tcp") == 0)
-      s = new sick_tim3xx::SickTim3xxCommonTcp(parser);
+  if(useTCP)
+      s = new sick_tim3xx::SickTim3xxCommonTcp(hostname, parser);
   else
       s = new sick_tim3xx::SickTim3xxCommonUsb(parser);
 
