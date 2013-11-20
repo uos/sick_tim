@@ -40,14 +40,9 @@
 namespace sick_tim3xx
 {
 
-SickTim3xxCommonTcp::SickTim3xxCommonTcp(AbstractParser* parser) : SickTim3xxCommon(parser),
-    socket_fd_(-1)
+SickTim3xxCommonTcp::SickTim3xxCommonTcp(const std::string & hostname, AbstractParser* parser) : SickTim3xxCommon(parser),
+    socket_fd_(-1), hostname_(hostname)
 {
-    ros::NodeHandle nhPriv("~");
-    if(!nhPriv.getParam("hostname", hostname_)) {
-        ROS_FATAL("Parameter ~hostname not set. Don't know where to connect.");
-        exit(1);    // nasty
-    }
 }
 
 SickTim3xxCommonTcp::~SickTim3xxCommonTcp()
