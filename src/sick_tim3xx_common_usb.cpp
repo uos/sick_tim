@@ -109,6 +109,7 @@ ssize_t SickTim3xxCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t ve
     if (result < 0)
     {
       ROS_ERROR("LIBUSB - Failed to get device descriptor");
+      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
       continue;
     }
 
@@ -121,6 +122,7 @@ ssize_t SickTim3xxCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t ve
       if (resultDevices == NULL)
       {
         ROS_ERROR("LIBUSB - Failed to allocate memory for the device result list.");
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Failed to allocate memory for the device result list.");
       }
       else
       {
@@ -235,6 +237,7 @@ void SickTim3xxCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, l
     if (result < 0)
     {
       ROS_ERROR("LIBUSB - Failed to get device descriptor");
+      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
       continue;
     }
     if (result == 0)
@@ -257,10 +260,11 @@ void SickTim3xxCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, l
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTim3xxCommonUsb::sendSOPASCommand(const char* request)
+int SickTim3xxCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
   if (device_handle_ == NULL) {
     ROS_ERROR("LIBUSB - device not open");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - device not open.");
     return EXIT_FAILURE;
   }
 
@@ -279,6 +283,7 @@ int SickTim3xxCommonUsb::sendSOPASCommand(const char* request)
   if (result != 0 || actual_length != requestLength)
   {
     ROS_ERROR("LIBUSB - Write Error: %i.", result);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Write Error.");
     return result;
   }
 
@@ -289,11 +294,18 @@ int SickTim3xxCommonUsb::sendSOPASCommand(const char* request)
   if (result != 0)
   {
     ROS_ERROR("LIBUSB - Read Error: %i.", result);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
     return result;
   }
 
   receiveBuffer[actual_length] = 0;
   ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
+  if(reply) {
+      reply->clear();
+      for(int i = 0; i < actual_length; i++) {
+          reply->push_back(receiveBuffer[i]);
+      }
+  }
 
   return result;
 }
@@ -310,6 +322,7 @@ int SickTim3xxCommonUsb::init_device()
   if (result != 0)
   {
     ROS_ERROR("LIBUSB - Initialization failed with the following error code: %i.", result);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Initialization failed.");
     return EXIT_FAILURE;
   }
 
@@ -334,11 +347,13 @@ int SickTim3xxCommonUsb::init_device()
   if (numberOfDevices_ == 0)
   {
     ROS_ERROR("No SICK TiM3xx devices connected!");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "No SICK TiM3xx devices connected!");
     return EXIT_FAILURE;
   }
   else if (numberOfDevices_ > 1)
   {
     ROS_WARN("%zu TiM3xx scanners connected, using the first one", numberOfDevices_);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::WARN, "Multiple TiMxxx scanners connected, using the first one.");
   }
 
   /*
@@ -353,6 +368,7 @@ int SickTim3xxCommonUsb::init_device()
   if (device_handle_ == NULL)
   {
     ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim3xx/udev/README");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device; please read sick_tim3xx/udev/README.");
     return EXIT_FAILURE;
   }
   else
@@ -376,6 +392,7 @@ int SickTim3xxCommonUsb::init_device()
   if (result < 0)
   {
     ROS_ERROR("LIBUSB - Cannot claim interface");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot claim interface.");
     return EXIT_FAILURE;
   }
   else
@@ -395,12 +412,14 @@ int SickTim3xxCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSi
     if (result == LIBUSB_ERROR_TIMEOUT)
     {
       ROS_WARN("LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
+      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
       *actual_length = 0;
       return EXIT_SUCCESS; // return success with size 0 to continue looping
     }
     else
     {
       ROS_ERROR("LIBUSB - Read Error: %i.", result);
+      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
       return result; // return failure to exit node
     }
   }
