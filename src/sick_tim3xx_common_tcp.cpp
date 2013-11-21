@@ -56,6 +56,7 @@ int SickTim3xxCommonTcp::init_device()
     socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
     if(socket_fd_ == -1) {
         ROS_FATAL("Could not open socket: %d", errno);
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Could not open socket.");
         return EXIT_FAILURE;
     }
 
@@ -69,6 +70,7 @@ int SickTim3xxCommonTcp::init_device()
     int res = getaddrinfo(hostname_.c_str(), "2112", &hints, &result);
     if(res != 0) {
         ROS_FATAL("Could not resolve host: ... (%d)", res);
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Could not resolve host.");
         return EXIT_FAILURE;
     }
 
@@ -83,6 +85,7 @@ int SickTim3xxCommonTcp::init_device()
 
     if(cur_addr == NULL) {
         ROS_FATAL("Could not connect to host %s", hostname_.c_str());
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Could not connect to host.");
         return EXIT_FAILURE;
     }
 
@@ -99,10 +102,11 @@ int SickTim3xxCommonTcp::close_device()
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTim3xxCommonTcp::sendSOPASCommand(const char* request)
+int SickTim3xxCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
     if(socket_fd_ == -1) {
         ROS_ERROR("sendSOPASCommand: socket_fd_ not open");
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: socket_fd_ not open.");
         return EXIT_FAILURE;
     }
 
@@ -112,6 +116,7 @@ int SickTim3xxCommonTcp::sendSOPASCommand(const char* request)
     ssize_t bytesWritten = write(socket_fd_, request, strlen(request));
     if(bytesWritten != (ssize_t)strlen(request)) {
         ROS_ERROR("write error for command: %s", request);
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Write error for sendSOPASCommand.");
         return EXIT_FAILURE;
     }
 
@@ -120,10 +125,17 @@ int SickTim3xxCommonTcp::sendSOPASCommand(const char* request)
     if(bytesRead < 0) {
         // FIXME might need a select
         ROS_ERROR("read error after command: %s (%d)", request, errno);
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Read error after sendSOPASCommand.");
         return EXIT_FAILURE;
     }
     receiveBuffer[bytesRead] = 0;
     ROS_DEBUG("TCP - Read data...  %s", receiveBuffer);
+    if(reply) {
+        reply->clear();
+        for(int i = 0; i < bytesRead; i++) {
+            reply->push_back(receiveBuffer[i]);
+        }
+    }
 
     // FIXME: need to puzzle together messages from stream???
     // see below
@@ -135,6 +147,7 @@ int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSi
 {
     if(socket_fd_ == -1) {
         ROS_ERROR("get_datagram: socket_fd_ not open");
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: socket_fd_ not open.");
         return EXIT_FAILURE;
     }
 
@@ -145,6 +158,7 @@ int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSi
     if(bytesRead < 0) {
         // FIXME might need a select
         ROS_ERROR("get_datagram: Read error"); 
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: Read error.");
         return EXIT_FAILURE;
     }
     receiveBuffer[bytesRead] = 0;
