@@ -58,12 +58,12 @@ SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
   // scan publisher
   pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
 
-  diagnostics_.setHardwareID("none");
+  diagnostics_.setHardwareID("none");   // set from device after connection
   diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,
-          // frequency should be _config.target_odometry_rate +- 30%.   TODO adjust tolerance from real values
-          diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.3, 10),
-          // timestamp delta can be from 0.0 to 2x what it ideally is.  TODO adjust threshold from real values
-          diagnostic_updater::TimeStampStatusParam(-1, 2.0/expectedFrequency_));
+          // frequency should be target +- 10%.
+          diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.1, 10),
+          // timestamp delta can be from 0.0 to 1.3x what it ideally is.
+          diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_));
   ROS_ASSERT(diagnosticPub_ != NULL);
 }
 
@@ -136,11 +136,15 @@ int SickTim3xxCommon::init_scanner()
   identReply.push_back(0);  // add \0 to convert to string
   serialReply.push_back(0);
   std::string identStr;
-  for(std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++)
-      identStr.push_back(*it);
+  for(std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++) {
+      if(*it > 13)  // filter control characters for display
+        identStr.push_back(*it);
+  }
   std::string serialStr;
-  for(std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++)
-      serialStr.push_back(*it);
+  for(std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++) {
+      if(*it > 13)
+        serialStr.push_back(*it);
+  }
   diagnostics_.setHardwareID(identStr + " " + serialStr);
 
   /*
