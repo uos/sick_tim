@@ -120,10 +120,26 @@ int SickTim3xxCommonTcp::sendSOPASCommand(const char* request, std::vector<unsig
         return EXIT_FAILURE;
     }
 
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(socket_fd_, &read_fds);
+    struct timeval timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
+    int ret = select(socket_fd_ + 1, &read_fds, NULL, NULL, &timeout);
+    if(ret < 0) {
+        ROS_ERROR("sendSOPASCommand: select() failed with code %d", ret);
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: select() failed.");
+        return EXIT_FAILURE;
+    } else if(ret == 0) {
+        ROS_ERROR_THROTTLE(1.0, "sendSOPASCommand: no data available for read after 5 s");
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: no data available for read after 5 s.");
+        return EXIT_FAILURE;
+    }
+
     unsigned char receiveBuffer[65536];
     ssize_t bytesRead = read(socket_fd_, receiveBuffer, 65536 - 1);
     if(bytesRead < 0) {
-        // FIXME might need a select
         ROS_ERROR("read error after command: %s (%d)", request, errno);
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Read error after sendSOPASCommand.");
         return EXIT_FAILURE;
@@ -154,9 +170,29 @@ int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSi
     /*
      * Write a SOPAS variable read request to the device.
      */
+    fd_set read_fds;
+    FD_ZERO(&read_fds);
+    FD_SET(socket_fd_, &read_fds);
+    // timeout from freq - will fail for frequency < 1
+    struct timeval timeout;
+    double scan_delta = 1.0/get_expected_frequency();
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 2.0 * scan_delta * 1000.0 * 1000.0;   // wait twice the scan delta
+
+    int ret = select(socket_fd_ + 1, &read_fds, NULL, NULL, &timeout);
+    if(ret < 0) {
+        ROS_ERROR("get_datagram: select() failed with code %d", ret);
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: select() failed.");
+        return EXIT_FAILURE;
+    } else if(ret == 0) {
+        ROS_ERROR_THROTTLE(1.0, "get_datagram: no data available for read after %d ms",
+                static_cast<int>(2.0 * scan_delta * 1000.0));
+        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: no data available for read after timeout.");
+        return EXIT_SUCCESS;    // keep on trying
+    }
+
     ssize_t bytesRead = read(socket_fd_, receiveBuffer, bufferSize - 1);
     if(bytesRead < 0) {
-        // FIXME might need a select
         ROS_ERROR("get_datagram: Read error"); 
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: Read error.");
         return EXIT_FAILURE;
@@ -167,7 +203,6 @@ int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSi
 
     // FIXME Ideally need to puzzle together messages from stream.
     // Currently working on LAN as the scanner sends 1 packet/scan.
-
     return EXIT_SUCCESS;
 }
 
