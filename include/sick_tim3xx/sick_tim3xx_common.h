@@ -68,6 +68,8 @@ public:
   void check_angle_range(SickTim3xxConfig &conf);
   void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
 
+  double get_expected_frequency() const { return expectedFrequency_; }
+
 protected:
   virtual int init_device() = 0;
   virtual int init_scanner();
