@@ -42,10 +42,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/String.h>
+
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
 
 #include <dynamic_reconfigure/server.h>
 #include <sick_tim3xx/SickTim3xxConfig.h>
@@ -64,6 +68,8 @@ public:
   void check_angle_range(SickTim3xxConfig &conf);
   void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
 
+  double get_expected_frequency() const { return expectedFrequency_; }
+
 protected:
   virtual int init_device() = 0;
   virtual int init_scanner();
@@ -71,7 +77,11 @@ protected:
   virtual int close_device() = 0;
 
   /// Send a SOPAS command to the device and print out the response to the console.
-  virtual int sendSOPASCommand(const char* request) = 0;
+  /**
+   * \param [in] request the command to send.
+   * \param [out] reply if not NULL, will be filled with the reply package to the command.
+   */
+  virtual int sendSOPASCommand(const char* request, std::vector<unsigned char> * reply) = 0;
 
   /// Read a datagram from the device.
   /**
@@ -81,12 +91,19 @@ protected:
    */
   virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length) = 0;
 
+protected:
+  diagnostic_updater::Updater diagnostics_;
+
 private:
   // ROS
   ros::NodeHandle nh_;
   ros::Publisher pub_;
   ros::Publisher datagram_pub_;
   bool publish_datagram_;
+
+  // Diagnostics
+  diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>* diagnosticPub_;
+  double expectedFrequency_;
 
   // Dynamic Reconfigure
   SickTim3xxConfig config_;

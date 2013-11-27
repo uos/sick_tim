@@ -42,7 +42,8 @@ namespace sick_tim3xx
 {
 
 SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
-    parser_(parser)
+    diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser)
+    // FIXME All Tims have 15Hz?
 {
   dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig>::CallbackType f;
   f = boost::bind(&sick_tim3xx::SickTim3xxCommon::update_config, this, _1, _2);
@@ -56,6 +57,14 @@ SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
 
   // scan publisher
   pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
+
+  diagnostics_.setHardwareID("none");   // set from device after connection
+  diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,
+          // frequency should be target +- 10%.
+          diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.1, 10),
+          // timestamp delta can be from 0.0 to 1.3x what it ideally is.
+          diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_));
+  ROS_ASSERT(diagnosticPub_ != NULL);
 }
 
 int SickTim3xxCommon::stop_scanner()
@@ -64,7 +73,7 @@ int SickTim3xxCommon::stop_scanner()
    * Stop streaming measurements
    */
   const char requestScanData0[] = {"\x02sEN LMDscandata 0\x03\0"};
-  int result = sendSOPASCommand(requestScanData0);
+  int result = sendSOPASCommand(requestScanData0, NULL);
   if (result != 0)
     // use printf because we cannot use ROS_ERROR from the destructor
     printf("\nSOPAS - Error stopping streaming scan data!\n");
@@ -76,6 +85,7 @@ int SickTim3xxCommon::stop_scanner()
 
 SickTim3xxCommon::~SickTim3xxCommon()
 {
+  delete diagnosticPub_;
   delete parser_;
 
   printf("sick_tim3xx driver exiting.\n");
@@ -102,40 +112,61 @@ int SickTim3xxCommon::init_scanner()
    * Read the SOPAS variable 'DeviceIdent' by index.
    */
   const char requestDeviceIdent[] = "\x02sRI0\x03\0";
-  int result = sendSOPASCommand(requestDeviceIdent);
+  std::vector<unsigned char> identReply;
+  int result = sendSOPASCommand(requestDeviceIdent, &identReply);
   if (result != 0)
   {
     ROS_ERROR("SOPAS - Error reading variable 'DeviceIdent'.");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'DeviceIdent'.");
   }
 
   /*
    * Read the SOPAS variable 'SerialNumber' by name.
    */
   const char requestSerialNumber[] = "\x02sRN SerialNumber\x03\0";
-  result = sendSOPASCommand(requestSerialNumber);
+  std::vector<unsigned char> serialReply;
+  result = sendSOPASCommand(requestSerialNumber, &serialReply);
   if (result != 0)
   {
     ROS_ERROR("SOPAS - Error reading variable 'SerialNumber'.");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'SerialNumber'.");
   }
+
+  // set hardware ID based on DeviceIdent and SerialNumber
+  identReply.push_back(0);  // add \0 to convert to string
+  serialReply.push_back(0);
+  std::string identStr;
+  for(std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++) {
+      if(*it > 13)  // filter control characters for display
+        identStr.push_back(*it);
+  }
+  std::string serialStr;
+  for(std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++) {
+      if(*it > 13)
+        serialStr.push_back(*it);
+  }
+  diagnostics_.setHardwareID(identStr + " " + serialStr);
 
   /*
    * Read the SOPAS variable 'FirmwareVersion' by name.
    */
   const char requestFirmwareVersion[] = {"\x02sRN FirmwareVersion\x03\0"};
-  result = sendSOPASCommand(requestFirmwareVersion);
+  result = sendSOPASCommand(requestFirmwareVersion, NULL);
   if (result != 0)
   {
     ROS_ERROR("SOPAS - Error reading variable 'FirmwareVersion'.");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'FirmwareVersion'.");
   }
 
   /*
    * Start streaming 'LMDscandata'.
    */
   const char requestScanData[] = {"\x02sEN LMDscandata 1\x03\0"};
-  result = sendSOPASCommand(requestScanData);
+  result = sendSOPASCommand(requestScanData, NULL);
   if (result != 0)
   {
     ROS_ERROR("SOPAS - Error starting to stream 'LMDscandata'.");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error starting to stream 'LMDscandata'.");
     return EXIT_FAILURE;
   }
 
@@ -144,6 +175,8 @@ int SickTim3xxCommon::init_scanner()
 
 int SickTim3xxCommon::loopOnce()
 {
+  diagnostics_.update();
+
   unsigned char receiveBuffer[65536];
   int actual_length = 0;
   static unsigned int iteration_count = 0;
@@ -152,6 +185,7 @@ int SickTim3xxCommon::loopOnce()
   if (result != 0)
   {
       ROS_ERROR("Read Error when getting datagram: %i.", result);
+      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Read Error when getting datagram.");
       return EXIT_FAILURE; // return failure to exit node
   }
   if(actual_length <= 0)
@@ -171,7 +205,7 @@ int SickTim3xxCommon::loopOnce()
   sensor_msgs::LaserScan msg;
   int success = parser_->parse_datagram((char*)receiveBuffer, (size_t)actual_length, config_, msg);
   if (success == EXIT_SUCCESS)
-    pub_.publish(msg);
+    diagnosticPub_->publish(msg);
 
   return EXIT_SUCCESS; // return success to continue looping
 }
