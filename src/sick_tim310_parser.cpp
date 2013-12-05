@@ -81,14 +81,14 @@ int SickTim310Parser::parse_datagram(char* datagram, size_t datagram_length, Sic
   {
     ROS_WARN(
         "received less fields than expected fields (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, 306 --> sick_tim551_2050001, 580 --> sick_tim310, 592 --> sick_tim310s01)");
+    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, 306 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
     // ROS_DEBUG("received message was: %s", datagram_copy);
     return EXIT_FAILURE;
   }
   else if (count > NUM_FIELDS)
   {
     ROS_WARN("received more fields than expected (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, 306 --> sick_tim551_2050001, 580 --> sick_tim310, 592 --> sick_tim310s01)");
+    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, 306 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
     // ROS_DEBUG("received message was: %s", datagram_copy);
     return EXIT_FAILURE;
   }
