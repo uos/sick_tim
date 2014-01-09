@@ -15,16 +15,6 @@
   <property name="sick_tim3xx_mass" value="0.150" />
 
 
-  <xacro:macro name="box_inertial_with_origin" params="x y z mass origin">
-    <inertial>
-      <mass value="${mass}" />
-      <origin xyz="${origin}" />
-      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
-        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
-        izz="${0.0833333 * mass * (x*x + y*y)}" />
-    </inertial>
-  </xacro:macro>
-
   <xacro:macro name="sick_tim3xx" params="laser_link">
     <link name="laser_mount_link">
       <inertial>
@@ -55,7 +45,13 @@
           <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
         </geometry>
       </collision>
-      <xacro:box_inertial_with_origin x="${sick_tim3xx_length}" y="${sick_tim3xx_width}" z="${sick_tim3xx_height}" mass="${sick_tim3xx_mass}" origin="0 0 -0.026" />
+      <inertial>
+        <mass value="${sick_tim3xx_mass}" />
+        <origin xyz="0 0 -0.026" />
+        <inertia ixx="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_width * sick_tim3xx_width + sick_tim3xx_height * sick_tim3xx_height)}" ixy="0.0" ixz="0.0"
+          iyy="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_length * sick_tim3xx_length + sick_tim3xx_height * sick_tim3xx_height)}" iyz="0.0"
+          izz="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_length * sick_tim3xx_length + sick_tim3xx_width * sick_tim3xx_width)}" />
+      </inertial>
     </link>
     <xacro:sick_tim3xx_laser_gazebo_v0 name="laser" link="${laser_link}" ros_topic="scan" update_rate="15.0" min_angle="-2.357" max_angle="2.357" />
   </xacro:macro>
