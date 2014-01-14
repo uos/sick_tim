@@ -71,7 +71,7 @@ protected:
   virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length);
 
 private:
-  static const unsigned int USB_TIMEOUT = 500; // milliseconds
+  static const unsigned int USB_TIMEOUT = 1000; // milliseconds
 
   ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t productID, libusb_device ***list);
   void freeSOPASDeviceList(libusb_device **list);
