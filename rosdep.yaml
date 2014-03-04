@@ -1,3 +1,0 @@
-# this file is only needed for ROS Electric and before
-libusb-1.0-dev:
-  ubuntu: libusb-1.0-0-dev
