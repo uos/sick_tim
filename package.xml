@@ -8,9 +8,9 @@
     scanners.
   </description>
 
-  <maintainer email="mguenthe@uni-osnabrueck.de">Martin Günther</maintainer>
-  <author email="web@jochen.sprickerhof.de">Jochen Sprickerhof</author>
-  <author email="mguenthe@uni-osnabrueck.de">Martin Günther</author>
+  <maintainer email="mguenthe@uos.de">Martin Günther</maintainer>
+  <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
+  <author email="mguenthe@uos.de">Martin Günther</author>
 
   <license>BSD</license>
 
