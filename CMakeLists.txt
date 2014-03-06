@@ -25,7 +25,7 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
 
-add_library(libsick
+add_library(sick
     src/sick_tim3xx_common.cpp
     src/sick_tim3xx_common_usb.cpp
     src/abstract_parser.cpp)
@@ -35,7 +35,7 @@ add_executable(sick_tim310s01
     src/sick_tim310s01_parser.cpp)
 add_dependencies(sick_tim310s01 ${PROJECT_NAME}_gencfg)
 target_link_libraries(sick_tim310s01
-    libsick
+    sick
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
 
@@ -44,7 +44,7 @@ add_executable(sick_tim310
     src/sick_tim310_parser.cpp)
 add_dependencies(sick_tim310 ${PROJECT_NAME}_gencfg)
 target_link_libraries(sick_tim310
-    libsick
+    sick
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
 
@@ -53,7 +53,7 @@ add_executable(sick_tim310_1130000m01
     src/sick_tim310_1130000m01_parser.cpp)
 add_dependencies(sick_tim310_1130000m01 ${PROJECT_NAME}_gencfg)
 target_link_libraries(sick_tim310_1130000m01
-    libsick
+    sick
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
 
@@ -63,7 +63,7 @@ add_executable(sick_tim551_2050001
     src/sick_tim551_2050001_parser.cpp)
 add_dependencies(sick_tim551_2050001 ${PROJECT_NAME}__gencfg)
 target_link_libraries(sick_tim551_2050001
-    libsick
+    sick
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
 
@@ -73,11 +73,11 @@ add_executable(sick_tim3xx_datagram_test
     src/abstract_parser.cpp)
 add_dependencies(sick_tim3xx_datagram_test ${PROJECT_NAME}_gencfg)
 target_link_libraries(sick_tim3xx_datagram_test
-    libsick
+    sick
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
 
-install(TARGETS libsick
+install(TARGETS sick
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 install(
