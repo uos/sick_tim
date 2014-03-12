@@ -19,8 +19,6 @@ find_library(libusb_LIBRARIES
 generate_dynamic_reconfigure_options(cfg/SickTim3xx.cfg)
 
 catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME}
     DEPENDS libusb_LIBRARIES)
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
