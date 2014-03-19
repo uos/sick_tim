@@ -14,5 +14,9 @@
       <param name="time_offset" type="double" value="-0.001" />
       <param name="publish_datagram" type="bool" value="False" />
     -->
+
+    <!-- Enables TCP instead of USB connection; `hostname` is the host name or IP address of the laser scanner
+         <param name="hostname" type="string" value="192.168.1.43" />
+    -->
   </node>
 </launch>
