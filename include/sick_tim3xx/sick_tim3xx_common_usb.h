@@ -42,7 +42,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 
 #include <sick_tim3xx/sick_tim3xx_common.h>
 
