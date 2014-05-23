@@ -51,10 +51,13 @@ SickTim5512050001Parser::~SickTim5512050001Parser()
 int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config,
                                      sensor_msgs::LaserScan &msg)
 {
-  static const size_t NUM_FIELDS = 306;
-  char* fields[NUM_FIELDS];
+  static const size_t HEADER_FIELDS = 33;
   char* cur_field;
   size_t count;
+
+  // Reserve sufficient space
+  std::vector<char *> fields;
+  fields.reserve(datagram_length / 2);
 
   // ----- only for debug output
   char datagram_copy[datagram_length + 1];
@@ -64,33 +67,84 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // ----- tokenize
   count = 0;
   cur_field = strtok(datagram, " ");
-  fields[count] = cur_field;
-  // ROS_DEBUG("%zu: %s ", count, fields[count]);
+  fields.push_back(cur_field);
 
   while (cur_field != NULL)
   {
-    count++;
     cur_field = strtok(NULL, " ");
-    if (count <= NUM_FIELDS)
-      fields[count] = cur_field;
-
-    // ROS_DEBUG("%zu: %s ", count, cur_field);
+    fields.push_back(cur_field);
   }
 
-  if (count < NUM_FIELDS)
+  count = fields.size();
+
+  // Validate header. Total number of tokens is highly unreliable as this may
+  // change when you change the scanning range or the device name using SOPAS ET
+  // tool. The header remains stable, however.
+  if (count < HEADER_FIELDS)
   {
     ROS_WARN(
-        "received less fields than expected fields (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, 306 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
+        "received less fields than minimum fields (actual: %zu, minimum: %zu), ignoring scan", count, HEADER_FIELDS);
+    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, > 33 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
     // ROS_DEBUG("received message was: %s", datagram_copy);
     return EXIT_FAILURE;
   }
-  else if (count > NUM_FIELDS)
+  if (strcmp(fields[15], "0"))
   {
-    ROS_WARN("received more fields than expected (actual: %zu, expected: %zu), ignoring scan", count, NUM_FIELDS);
-    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, 306 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
-    // ROS_DEBUG("received message was: %s", datagram_copy);
+    ROS_WARN("Field 15 of received data is not equal to 0 (%s). Unexpected data, ignoring scan", fields[15]);
     return EXIT_FAILURE;
+  }
+  if (strcmp(fields[20], "DIST1"))
+  {
+    ROS_WARN("Field 20 of received data is not equal to DIST1i (%s). Unexpected data, ignoring scan", fields[20]);
+    return EXIT_FAILURE;
+  }
+
+  // More in depth checks: check data length and RSSI availability
+  // 25: Number of data (<= 10F)
+  unsigned short int number_of_data = 0;
+  sscanf(fields[25], "%hx", &number_of_data);
+
+  if (number_of_data < 1 || number_of_data > 271)
+  {
+    ROS_WARN("Data length is outside acceptable range 1-271 (%d). Ignoring scan", number_of_data);
+    return EXIT_FAILURE;
+  }
+  if (count < HEADER_FIELDS + number_of_data)
+  {
+    ROS_WARN("Less fields than expected for %d data points (%zu). Ignoring scan", number_of_data, count);
+    return EXIT_FAILURE;
+  }
+  ROS_DEBUG("Number of data: %d", number_of_data);
+
+  // Calculate offset of field that contains indicator of whether or not RSSI data is included
+  size_t rssi_idx = 26 + number_of_data;
+  int tmp;
+  sscanf(fields[rssi_idx], "%d", &tmp);
+  bool rssi = tmp > 0;
+  unsigned short int number_of_rssi_data = 0;
+  if (rssi)
+  {
+    sscanf(fields[rssi_idx + 6], "%hx", &number_of_rssi_data);
+
+    // Number of RSSI data should be equal to number of data
+    if (number_of_rssi_data != number_of_data)
+    {
+      ROS_WARN("Number of RSSI data is lower than number of range data (%d vs %d", number_of_data, number_of_rssi_data);
+      return EXIT_FAILURE;
+    }
+
+    // Check if the total length is still appropriate.
+    // RSSI data size = number of RSSI readings + 6 fields describing the data
+    if (count < HEADER_FIELDS + number_of_data + number_of_rssi_data + 6)
+    {
+      ROS_WARN("Less fields than expected for %d data points (%zu). Ignoring scan", number_of_data, count);
+      return EXIT_FAILURE;
+    }
+
+    if (strcmp(fields[rssi_idx + 1], "RSSI1"))
+    {
+      ROS_WARN("Field %zu of received data is not equal to RSSI1 (%s). Unexpected data, ignoring scan", rssi_idx + 1, fields[rssi_idx + 1]);
+    }
   }
 
   // ----- read fields into msg
@@ -104,12 +158,12 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // 1: Command (LMDscandata)
   // 2: Firmware version number (1)
   // 3: Device number (1)
-  // 4: Serial number (B96518)
+  // 4: Serial number (eg. B96518)
   // 5 + 6: Device Status (0 0 = ok, 0 1 = error)
-  // 7: Telegram counter (99)
-  // 8: Scan counter (9A)
-  // 9: Time since startup (13C8E59)
-  // 10: Time of transmission (13C9CBE)
+  // 7: Telegram counter (eg. 99)
+  // 8: Scan counter (eg. 9A)
+  // 9: Time since startup (eg. 13C8E59)
+  // 10: Time of transmission (eg. 13C9CBE)
   // 11 + 12: Input status (0 0)
   // 13 + 14: Output status (8 0)
   // 15: Reserved Byte A (0)
@@ -149,7 +203,10 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   unsigned short angular_step_width = -1;
   sscanf(fields[24], "%hx", &angular_step_width);
   msg.angle_increment = (angular_step_width / 10000.0) / 180.0 * M_PI;
-  msg.angle_max = msg.angle_min + 270.0 * msg.angle_increment;
+  msg.angle_max = msg.angle_min + (number_of_data - 1) * msg.angle_increment;
+
+  // 25: Number of data (<= 10F)
+  // This is already determined above in number_of_data
 
   // adjust angle_min to min_ang config param
   int index_min = 0;
@@ -160,7 +217,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   }
 
   // adjust angle_max to max_ang config param
-  int index_max = 270;
+  int index_max = number_of_data - 1;
   while (msg.angle_max - msg.angle_increment > config.max_ang)
   {
     msg.angle_max -= msg.angle_increment;
@@ -170,9 +227,8 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   ROS_DEBUG("index_min: %d, index_max: %d", index_min, index_max);
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
-  // 25: Number of data (10F)
 
-  // 26..296: Data_1 .. Data_n
+  // 26..26 + n - 1: Data_1 .. Data_n
   msg.ranges.resize(index_max - index_min + 1);
   for (int j = index_min; j <= index_max; ++j)
   {
@@ -181,8 +237,37 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     msg.ranges[j - index_min] = range / 1000.0;
   }
 
-  // 297-305: unknown
-  // <ETX> (\x03)
+  if (rssi)
+  {
+    // 26 + n: RSSI data included
+
+    //   26 + n + 1 = RSSI Measured Data Contents (RSSI1)
+    //   26 + n + 2 = RSSI scaling factor (3F80000)
+    //   26 + n + 3 = RSSI Scaling offset (0000000)
+    //   26 + n + 4 = RSSI starting angle (equal to Range starting angle)
+    //   26 + n + 5 = RSSI angular step width (equal to Range angular step width)
+    //   26 + n + 6 = RSSI number of data (equal to Range number of data)
+    //   26 + n + 7 .. 26 + n + 7 + n - 1: RSSI_Data_1 .. RSSI_Data_n
+    //   26 + n + 7 + n .. 26 + n + 7 + n + 2 = unknown (but seems to be [0, 1, B] always)
+    //   26 + n + 7 + n + 2 .. count - 4 = device label
+    //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
+    //   <ETX> (\x03)
+    msg.intensities.resize(index_max - index_min + 1);
+    size_t offset = 26 + number_of_data + 7;
+    for (int j = index_min; j <= index_max; ++j)
+    {
+      unsigned short intensity;
+      sscanf(fields[j + offset], "%hx", &intensity);
+      msg.intensities[j - index_min] = intensity;
+    }
+  }
+
+  // 26 + n: RSSI data included
+  // IF RSSI not included:
+  //   26 + n + 1 .. 26 + n + 3 = unknown (but seems to be [0, 1, B] always)
+  //   26 + n + 4 .. count - 4 = device label
+  //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
+  //   <ETX> (\x03)
 
   msg.range_min = 0.05;
   msg.range_max = 10.0;
