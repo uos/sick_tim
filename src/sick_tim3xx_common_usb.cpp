@@ -41,7 +41,7 @@
 namespace sick_tim3xx
 {
 
-SickTim3xxCommonUsb::SickTim3xxCommonUsb(AbstractParser* parser) : SickTim3xxCommon(parser),
+SickTim3xxCommonUsb::SickTim3xxCommonUsb(const std::string & ros_topic, AbstractParser* parser) : SickTim3xxCommon(ros_topic, parser),
     ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL)
 {
 }

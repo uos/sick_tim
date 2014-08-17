@@ -42,9 +42,9 @@
 namespace sick_tim3xx
 {
 
-SickTim3xxCommonTcp::SickTim3xxCommonTcp(const std::string & hostname, AbstractParser* parser) 
+SickTim3xxCommonTcp::SickTim3xxCommonTcp(const std::string & hostname, const std::string & ros_topic, AbstractParser* parser) 
 :
-    SickTim3xxCommon(parser),
+    SickTim3xxCommon(ros_topic, parser),
     socket_(io_service_),
     deadline_(io_service_),
     hostname_(hostname)

@@ -6,6 +6,7 @@
   <node name="sick_tim551_2050001" pkg="sick_tim3xx" type="sick_tim551_2050001" respawn="false" output="screen">
     <!-- default values: -->
     <!--
+      <param name="topic" type="str" value="scan" />
       <param name="min_ang" type="double" value="-2.35619449019" />
       <param name="max_ang" type="double" value="2.35619449019" />
       <param name="intensity" type="bool" value="True" />

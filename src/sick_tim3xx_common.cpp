@@ -41,7 +41,7 @@
 namespace sick_tim3xx
 {
 
-SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
+SickTim3xxCommon::SickTim3xxCommon(const std::string & ros_topic, AbstractParser* parser) :
     diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser)
     // FIXME All Tims have 15Hz?
 {
@@ -56,7 +56,7 @@ SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
     datagram_pub_ = nh_.advertise<std_msgs::String>("datagram", 1000);
 
   // scan publisher
-  pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
+  pub_ = nh_.advertise<sensor_msgs::LaserScan>(ros_topic, 1000);
 
   diagnostics_.setHardwareID("none");   // set from device after connection
   diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,

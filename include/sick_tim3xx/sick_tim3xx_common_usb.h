@@ -52,7 +52,7 @@ namespace sick_tim3xx
 class SickTim3xxCommonUsb : public SickTim3xxCommon
 {
 public:
-  SickTim3xxCommonUsb(AbstractParser* parser);
+  SickTim3xxCommonUsb(const std::string & ros_topic, AbstractParser* parser);
   virtual ~SickTim3xxCommonUsb();
 
 protected:
