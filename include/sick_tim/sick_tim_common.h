@@ -36,31 +36,52 @@
  *
  */
 
-#ifndef SICK_TIM3XX_COMMON_USB_H_
-#define SICK_TIM3XX_COMMON_USB_H_
+#ifndef SICK_TIM3XX_COMMON_H_
+#define SICK_TIM3XX_COMMON_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libusb.h>
+#include <vector>
 
-#include <sick_tim3xx/sick_tim3xx_common.h>
+#include <ros/ros.h>
+#include <sensor_msgs/LaserScan.h>
+#include <std_msgs/String.h>
 
-namespace sick_tim3xx
+#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/publisher.h>
+
+#include <dynamic_reconfigure/server.h>
+#include <sick_tim/SickTimConfig.h>
+#include <sick_tim/abstract_parser.h>
+
+namespace sick_tim
 {
 
-class SickTim3xxCommonUsb : public SickTim3xxCommon
+class SickTimCommon
 {
 public:
-  SickTim3xxCommonUsb(AbstractParser* parser);
-  virtual ~SickTim3xxCommonUsb();
+  SickTimCommon(AbstractParser* parser);
+  virtual ~SickTimCommon();
+  virtual int init();
+  int loopOnce();
+  void check_angle_range(SickTimConfig &conf);
+  void update_config(sick_tim::SickTimConfig &new_config, uint32_t level = 0);
+
+  double get_expected_frequency() const { return expectedFrequency_; }
 
 protected:
-  virtual int init_device();
-  virtual int close_device();
+  virtual int init_device() = 0;
+  virtual int init_scanner();
+  virtual int stop_scanner();
+  virtual int close_device() = 0;
 
   /// Send a SOPAS command to the device and print out the response to the console.
-  virtual int sendSOPASCommand(const char* request, std::vector<unsigned char> * reply);
+  /**
+   * \param [in] request the command to send.
+   * \param [out] reply if not NULL, will be filled with the reply package to the command.
+   */
+  virtual int sendSOPASCommand(const char* request, std::vector<unsigned char> * reply) = 0;
 
   /// Read a datagram from the device.
   /**
@@ -68,24 +89,29 @@ protected:
    * \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
    * \param [out] actual_length the actual amount of data written
    */
-  virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length);
+  virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length) = 0;
+
+protected:
+  diagnostic_updater::Updater diagnostics_;
 
 private:
-  static const unsigned int USB_TIMEOUT = 1000; // milliseconds
+  // ROS
+  ros::NodeHandle nh_;
+  ros::Publisher pub_;
+  ros::Publisher datagram_pub_;
+  bool publish_datagram_;
 
-  ssize_t getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t productID, libusb_device ***list);
-  void freeSOPASDeviceList(libusb_device **list);
+  // Diagnostics
+  diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>* diagnosticPub_;
+  double expectedFrequency_;
 
-  void printUSBDeviceDetails(struct libusb_device_descriptor desc);
-  void printUSBInterfaceDetails(libusb_device* device);
-  void printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** devices);
+  // Dynamic Reconfigure
+  SickTimConfig config_;
+  dynamic_reconfigure::Server<sick_tim::SickTimConfig> dynamic_reconfigure_server_;
 
-  // libusb
-  libusb_context *ctx_;
-  ssize_t numberOfDevices_;
-  libusb_device **devices_;
-  libusb_device_handle *device_handle_;
+  // Parser
+  AbstractParser* parser_;
 };
 
-} /* namespace sick_tim3xx */
-#endif /* SICK_TIM3XX_COMMON_USB_H_ */
+} /* namespace sick_tim */
+#endif /* SICK_TIM3XX_COMMON_H_ */

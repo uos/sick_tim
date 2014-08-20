@@ -26,29 +26,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 14.11.2013
+ *  Created on: 21.08.2013
  *
  *      Author: Martin Günther <mguenthe@uos.de>
  *
  */
 
-#ifndef SICK_TIM551_2050001_PARSER_H_
-#define SICK_TIM551_2050001_PARSER_H_
+#ifndef SICK_TIM310_1130000M01_PARSER_H_
+#define SICK_TIM310_1130000M01_PARSER_H_
 
-#include <sick_tim3xx/abstract_parser.h>
+#include <sick_tim/abstract_parser.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-class SickTim5512050001Parser : public AbstractParser
+class SickTim3101130000M01Parser : public AbstractParser
 {
 public:
-  SickTim5512050001Parser();
-  virtual ~SickTim5512050001Parser();
+  SickTim3101130000M01Parser();
+  virtual ~SickTim3101130000M01Parser();
 
-  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config,
+  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
                              sensor_msgs::LaserScan &msg);
 };
 
-} /* namespace sick_tim3xx */
-#endif /* SICK_TIM551_2050001_PARSER_H_ */
+} /* namespace sick_tim */
+#endif /* SICK_TIM310_1130000M01_PARSER_H_ */

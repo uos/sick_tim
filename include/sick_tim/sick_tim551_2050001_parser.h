@@ -26,50 +26,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 21.08.2013
+ *  Created on: 14.11.2013
  *
  *      Author: Martin Günther <mguenthe@uos.de>
  *
  */
 
-#ifndef SICK_TIM3XX_DATAGRAM_TEST_H_
-#define SICK_TIM3XX_DATAGRAM_TEST_H_
+#ifndef SICK_TIM551_2050001_PARSER_H_
+#define SICK_TIM551_2050001_PARSER_H_
 
-#include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
-#include <std_msgs/String.h>
+#include <sick_tim/abstract_parser.h>
 
-#include <dynamic_reconfigure/server.h>
-#include <sick_tim3xx/SickTim3xxConfig.h>
-#include <sick_tim3xx/abstract_parser.h>
-
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-class SickTim3xxDatagramTest
+class SickTim5512050001Parser : public AbstractParser
 {
 public:
-  SickTim3xxDatagramTest(AbstractParser* parser);
-  virtual ~SickTim3xxDatagramTest();
-  void check_angle_range(SickTim3xxConfig &conf);
-  void update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level = 0);
+  SickTim5512050001Parser();
+  virtual ~SickTim5512050001Parser();
 
-private:
-  ros::NodeHandle nh_;
-
-  // publisher to "scan" topic
-  ros::Publisher pub_;
-
-  // subscriber to "datagram" topic
-  ros::Subscriber sub_;
-  void datagramCB(const std_msgs::String::ConstPtr &msg);
-
-  // Dynamic Reconfigure
-  SickTim3xxConfig config_;
-  dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig> dynamic_reconfigure_server_;
-
-  AbstractParser* parser_;
+  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
+                             sensor_msgs::LaserScan &msg);
 };
 
-} /* namespace sick_tim3xx */
-#endif /* SICK_TIM3XX_DATAGRAM_TEST_H_ */
+} /* namespace sick_tim */
+#endif /* SICK_TIM551_2050001_PARSER_H_ */

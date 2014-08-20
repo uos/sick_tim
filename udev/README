@@ -8,4 +8,4 @@ Now unplug your USB cable and plug it in again.  This will allow you to
 communicate with the laser scanner without running the node as root and fix the
 following error:
 
-    LIBUSB - Cannot open device; please read sick_tim3xx/udev/README
+    LIBUSB - Cannot open device; please read sick_tim/udev/README

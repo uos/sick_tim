@@ -32,9 +32,9 @@
  *
  */
 
-#include <sick_tim3xx/abstract_parser.h>
+#include <sick_tim/abstract_parser.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
 AbstractParser::AbstractParser()
@@ -45,4 +45,4 @@ AbstractParser::~AbstractParser()
 {
 }
 
-} /* namespace sick_tim3xx */
+} /* namespace sick_tim */

@@ -3,9 +3,9 @@
   xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
   xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
   xmlns:xacro="http://ros.org/wiki/xacro"
-  name="sick_tim3xx">
+  name="sick_tim">
 
-  <include filename="$(find sick_tim3xx)/urdf/sick_tim3xx.urdf.xacro" />
+  <include filename="$(find sick_tim)/urdf/sick_tim.urdf.xacro" />
 
-  <xacro:sick_tim3xx laser_link="laser" />
+  <xacro:sick_tim laser_link="laser" />
 </robot>

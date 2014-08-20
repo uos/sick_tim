@@ -6,16 +6,16 @@
 
 
   <!-- distance between base plate and laser center (= center of mesh) -->
-  <property name="sick_tim3xx_z_offset" value="0.05609" />
+  <property name="sick_tim_z_offset" value="0.05609" />
 
-  <property name="sick_tim3xx_length" value="0.06" />
-  <property name="sick_tim3xx_width" value="0.06" />
-  <property name="sick_tim3xx_height" value="0.08" />
+  <property name="sick_tim_length" value="0.06" />
+  <property name="sick_tim_width" value="0.06" />
+  <property name="sick_tim_height" value="0.08" />
 
-  <property name="sick_tim3xx_mass" value="0.150" />
+  <property name="sick_tim_mass" value="0.150" />
 
 
-  <xacro:macro name="sick_tim3xx" params="laser_link">
+  <xacro:macro name="sick_tim" params="laser_link">
     <link name="laser_mount_link">
       <inertial>
         <mass value="0.001" />
@@ -28,13 +28,13 @@
     <joint name="laser_joint" type="fixed">
       <parent link="laser_mount_link" />
       <child link="${laser_link}" />
-      <origin rpy="0 0 0" xyz="0 0 ${sick_tim3xx_z_offset}"/>
+      <origin rpy="0 0 0" xyz="0 0 ${sick_tim_z_offset}"/>
     </joint>
   
     <link name="${laser_link}">
       <visual>
         <geometry>
-          <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
+          <mesh filename="package://sick_tim/meshes/sick_tim.stl" />
         </geometry>
         <material name="blue" >
           <color rgba="0 0 1 1" />
@@ -42,15 +42,15 @@
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://sick_tim3xx/meshes/sick_tim3xx.stl" />
+          <mesh filename="package://sick_tim/meshes/sick_tim.stl" />
         </geometry>
       </collision>
       <inertial>
-        <mass value="${sick_tim3xx_mass}" />
+        <mass value="${sick_tim_mass}" />
         <origin xyz="0 0 -0.026" />
-        <inertia ixx="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_width * sick_tim3xx_width + sick_tim3xx_height * sick_tim3xx_height)}" ixy="0.0" ixz="0.0"
-          iyy="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_length * sick_tim3xx_length + sick_tim3xx_height * sick_tim3xx_height)}" iyz="0.0"
-          izz="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_length * sick_tim3xx_length + sick_tim3xx_width * sick_tim3xx_width)}" />
+        <inertia ixx="${0.0833333 * sick_tim_mass * (sick_tim_width * sick_tim_width + sick_tim_height * sick_tim_height)}" ixy="0.0" ixz="0.0"
+          iyy="${0.0833333 * sick_tim_mass * (sick_tim_length * sick_tim_length + sick_tim_height * sick_tim_height)}" iyz="0.0"
+          izz="${0.0833333 * sick_tim_mass * (sick_tim_length * sick_tim_length + sick_tim_width * sick_tim_width)}" />
       </inertial>
     </link>
   
