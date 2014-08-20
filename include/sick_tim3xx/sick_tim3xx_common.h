@@ -61,7 +61,7 @@ namespace sick_tim3xx
 class SickTim3xxCommon
 {
 public:
-  SickTim3xxCommon(AbstractParser* parser);
+  SickTim3xxCommon(const std::string & ros_topic, AbstractParser* parser);
   virtual ~SickTim3xxCommon();
   virtual int init();
   int loopOnce();

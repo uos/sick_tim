@@ -45,16 +45,18 @@ int main(int argc, char **argv)
   ros::NodeHandle nhPriv("~");
   bool useTCP = false;
   std::string hostname;
+  std::string ros_topic;
   if(nhPriv.getParam("hostname", hostname)) {
       useTCP = true;
   }
+  nhPriv.param<std::string>("topic", ros_topic, "scan");
 
   sick_tim3xx::SickTim5512050001Parser* parser = new sick_tim3xx::SickTim5512050001Parser();
   sick_tim3xx::SickTim3xxCommon* s = NULL;
   if(useTCP)
-      s = new sick_tim3xx::SickTim3xxCommonTcp(hostname, parser);
+      s = new sick_tim3xx::SickTim3xxCommonTcp(ros_topic, hostname, parser);
   else
-      s = new sick_tim3xx::SickTim3xxCommonUsb(parser);
+      s = new sick_tim3xx::SickTim3xxCommonUsb(ros_topic, parser);
 
   int result = s->init();
   while (ros::ok() && (result == EXIT_SUCCESS))

@@ -42,9 +42,13 @@
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "sick_tim310_1130000m01");
-
+  ros::NodeHandle nhPriv("~");
+  
+  std::string ros_topic;
+  nhPriv.param<std::string>("topic", ros_topic, "scan");
+  
   sick_tim3xx::SickTim3101130000M01Parser* parser = new sick_tim3xx::SickTim3101130000M01Parser();
-  sick_tim3xx::SickTim3xxCommonUsb s((sick_tim3xx::AbstractParser*)parser);
+  sick_tim3xx::SickTim3xxCommonUsb s(ros_topic, (sick_tim3xx::AbstractParser*)parser);
 
   int result = s.init();
   while (ros::ok() && (result == EXIT_SUCCESS))

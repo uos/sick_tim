@@ -6,17 +6,17 @@
 
 
   <!-- distance between base plate and laser center (= center of mesh) -->
-  <property name="sick_tim3xx_z_offset" value="0.05609" />
+  <property name="sick_tim5xx_z_offset" value="0.06246" />
 
-  <property name="sick_tim3xx_length" value="0.06" />
-  <property name="sick_tim3xx_width" value="0.06" />
-  <property name="sick_tim3xx_height" value="0.08" />
+  <property name="sick_tim5xx_length" value="0.06" />
+  <property name="sick_tim5xx_width" value="0.06" />
+  <property name="sick_tim5xx_height" value="0.086" />
 
-  <property name="sick_tim3xx_mass" value="0.150" />
+  <property name="sick_tim5xx_mass" value="0.250" />
 
 
-  <xacro:macro name="sick_tim3xx" params="name ros_topic laser_link">
-    <link name="laser_mount_link">
+  <xacro:macro name="sick_tim5xx" params="name ros_topic mount_link laser_link laser_joint">
+    <link name="${mount_link}">
       <inertial>
         <mass value="0.001" />
         <origin xyz="0 0 0" />
@@ -25,10 +25,10 @@
       </inertial>
     </link>
 
-    <joint name="laser_joint" type="fixed">
-      <parent link="laser_mount_link" />
+    <joint name="${laser_joint}" type="fixed">
+      <parent link="${mount_link}" />
       <child link="${laser_link}" />
-      <origin rpy="0 0 0" xyz="0 0 ${sick_tim3xx_z_offset}"/>
+      <origin rpy="0 0 0" xyz="0 0 ${sick_tim5xx_z_offset}"/>
     </joint>
 
     <link name="${laser_link}">
@@ -46,18 +46,18 @@
         </geometry>
       </collision>
       <inertial>
-        <mass value="${sick_tim3xx_mass}" />
+        <mass value="${sick_tim5xx_mass}" />
         <origin xyz="0 0 -0.026" />
-        <inertia ixx="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_width * sick_tim3xx_width + sick_tim3xx_height * sick_tim3xx_height)}" ixy="0.0" ixz="0.0"
-          iyy="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_length * sick_tim3xx_length + sick_tim3xx_height * sick_tim3xx_height)}" iyz="0.0"
-          izz="${0.0833333 * sick_tim3xx_mass * (sick_tim3xx_length * sick_tim3xx_length + sick_tim3xx_width * sick_tim3xx_width)}" />
+        <inertia ixx="${0.0833333 * sick_tim5xx_mass * (sick_tim5xx_width * sick_tim5xx_width + sick_tim5xx_height * sick_tim5xx_height)}" ixy="0.0" ixz="0.0"
+          iyy="${0.0833333 * sick_tim5xx_mass * (sick_tim5xx_length * sick_tim5xx_length + sick_tim5xx_height * sick_tim5xx_height)}" iyz="0.0"
+          izz="${0.0833333 * sick_tim5xx_mass * (sick_tim5xx_length * sick_tim5xx_length + sick_tim5xx_width * sick_tim5xx_width)}" />
       </inertial>
     </link>
-    <xacro:sick_tim3xx_laser_gazebo_v0 name="${name}" link="${laser_link}" ros_topic="${ros_topic}" update_rate="15.0" min_angle="-2.357" max_angle="2.357" />
+    <xacro:sick_tim5xx_laser_gazebo_v0 name="${name}" link="${laser_link}" ros_topic="${ros_topic}" update_rate="15.0" min_angle="-2.357" max_angle="2.357" />
   </xacro:macro>
 
 
-  <xacro:macro name="sick_tim3xx_laser_gazebo_v0" params="name link ros_topic update_rate min_angle max_angle">
+  <xacro:macro name="sick_tim5xx_laser_gazebo_v0" params="name link ros_topic update_rate min_angle max_angle">
     <gazebo reference="${link}">
       <material value="Gazebo/Blue" />
       <sensor type="ray" name="${name}">
@@ -76,7 +76,7 @@
           </scan>
           <range>
             <min>0.05</min>
-            <max>4.0</max>
+            <max>10.0</max>
             <resolution>0.01</resolution>
           </range>
         </ray>

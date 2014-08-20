@@ -48,7 +48,7 @@ namespace sick_tim3xx
 class SickTim3xxCommonTcp : public SickTim3xxCommon
 {
 public:
-  SickTim3xxCommonTcp(const std::string & hostname, AbstractParser* parser);
+  SickTim3xxCommonTcp(const std::string & hostname, const std::string & ros_topic, AbstractParser* parser);
   virtual ~SickTim3xxCommonTcp();
 
 protected:
