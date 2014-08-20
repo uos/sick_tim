@@ -32,19 +32,19 @@
  *         Christian Dornhege <c.dornhege@googlemail.com>
  */
 
-#include <sick_tim3xx/sick_tim3xx_common_tcp.h>
+#include <sick_tim/sick_tim_common_tcp.h>
 #include <boost/asio.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <algorithm>
 #include <iterator>
 #include <boost/lexical_cast.hpp>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-SickTim3xxCommonTcp::SickTim3xxCommonTcp(const std::string & hostname, AbstractParser* parser) 
+SickTimCommonTcp::SickTimCommonTcp(const std::string & hostname, AbstractParser* parser) 
 :
-    SickTim3xxCommon(parser),
+    SickTimCommon(parser),
     socket_(io_service_),
     deadline_(io_service_),
     hostname_(hostname)
@@ -56,7 +56,7 @@ SickTim3xxCommonTcp::SickTim3xxCommonTcp(const std::string & hostname, AbstractP
     checkDeadline();
 }
 
-SickTim3xxCommonTcp::~SickTim3xxCommonTcp()
+SickTimCommonTcp::~SickTimCommonTcp()
 {
   stop_scanner();
   close_device();
@@ -66,7 +66,7 @@ using boost::asio::ip::tcp;
 using boost::lambda::var;
 using boost::lambda::_1;
 
-int SickTim3xxCommonTcp::init_device()
+int SickTimCommonTcp::init_device()
 {
     // Resolve the supplied hostname
     tcp::resolver::iterator iterator;
@@ -123,7 +123,7 @@ int SickTim3xxCommonTcp::init_device()
     return EXIT_SUCCESS;
 }
 
-int SickTim3xxCommonTcp::close_device()
+int SickTimCommonTcp::close_device()
 {
     if (socket_.is_open())
     {
@@ -139,7 +139,7 @@ int SickTim3xxCommonTcp::close_device()
     return 0;
 }
 
-void SickTim3xxCommonTcp::checkDeadline()
+void SickTimCommonTcp::checkDeadline()
 {
     if (deadline_.expires_at() <= boost::asio::deadline_timer::traits_type::now())
     {
@@ -150,10 +150,10 @@ void SickTim3xxCommonTcp::checkDeadline()
     }
 
     // Nothing bad happened, go back to sleep
-    deadline_.async_wait(boost::bind(&SickTim3xxCommonTcp::checkDeadline, this));
+    deadline_.async_wait(boost::bind(&SickTimCommonTcp::checkDeadline, this));
 }
 
-int SickTim3xxCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, bool *exception_occured)
+int SickTimCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffer_size, int *bytes_read, bool *exception_occured)
 {
     // Set up the deadline to the proper timeout, error and delimiters
     deadline_.expires_from_now(boost::posix_time::milliseconds(timeout_ms));
@@ -167,7 +167,7 @@ int SickTim3xxCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int bu
         input_buffer_,
         end_delim,
         boost::bind(
-            &SickTim3xxCommonTcp::handleRead,
+            &SickTimCommonTcp::handleRead,
             this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred
@@ -221,7 +221,7 @@ int SickTim3xxCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int bu
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTim3xxCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
+int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
     if (!socket_.is_open()) {
         ROS_ERROR("sendSOPASCommand: socket not open");
@@ -263,7 +263,7 @@ int SickTim3xxCommonTcp::sendSOPASCommand(const char* request, std::vector<unsig
     return EXIT_SUCCESS;
 }
 
-int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
+int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
 {
     if (!socket_.is_open()) {
         ROS_ERROR("get_datagram: socket not open");
@@ -305,4 +305,4 @@ int SickTim3xxCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSi
     return EXIT_SUCCESS;
 }
 
-} /* namespace sick_tim3xx */
+} /* namespace sick_tim */

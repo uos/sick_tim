@@ -36,23 +36,23 @@
  *
  */
 
-#include <sick_tim3xx/sick_tim3xx_common_usb.h>
+#include <sick_tim/sick_tim_common_usb.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-SickTim3xxCommonUsb::SickTim3xxCommonUsb(AbstractParser* parser) : SickTim3xxCommon(parser),
+SickTimCommonUsb::SickTimCommonUsb(AbstractParser* parser) : SickTimCommon(parser),
     ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL)
 {
 }
 
-SickTim3xxCommonUsb::~SickTim3xxCommonUsb()
+SickTimCommonUsb::~SickTimCommonUsb()
 {
   stop_scanner();
   close_device();
 }
 
-int SickTim3xxCommonUsb::close_device()
+int SickTimCommonUsb::close_device()
 {
   int result = 0;
   if (device_handle_ != NULL)
@@ -87,7 +87,7 @@ int SickTim3xxCommonUsb::close_device()
 /**
  * Returns a list of USB devices currently attached to the system and matching the given vendorID and productID.
  */
-ssize_t SickTim3xxCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t productID,
+ssize_t SickTimCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t productID,
                                              libusb_device ***list)
 {
   libusb_device **resultDevices = NULL;
@@ -149,7 +149,7 @@ ssize_t SickTim3xxCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t ve
 /*
  * Free the list of devices obtained from the function 'getSOPASDeviceList'.
  */
-void SickTim3xxCommonUsb::freeSOPASDeviceList(libusb_device **list)
+void SickTimCommonUsb::freeSOPASDeviceList(libusb_device **list)
 {
   if (!list)
     return;
@@ -165,7 +165,7 @@ void SickTim3xxCommonUsb::freeSOPASDeviceList(libusb_device **list)
 /*
  * Print the device details such as USB device class, vendor id and product id to the console.
  */
-void SickTim3xxCommonUsb::printUSBDeviceDetails(struct libusb_device_descriptor desc)
+void SickTimCommonUsb::printUSBDeviceDetails(struct libusb_device_descriptor desc)
 {
   ROS_INFO("Device Class: 0x%x", desc.bDeviceClass);
   ROS_INFO("VendorID:     0x%x", desc.idVendor);
@@ -175,7 +175,7 @@ void SickTim3xxCommonUsb::printUSBDeviceDetails(struct libusb_device_descriptor 
 /*
  * Iterate through the the interfaces of the USB device and print out the interface details to the console.
  */
-void SickTim3xxCommonUsb::printUSBInterfaceDetails(libusb_device* device)
+void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device* device)
 {
   struct libusb_config_descriptor *config;
 
@@ -227,7 +227,7 @@ void SickTim3xxCommonUsb::printUSBInterfaceDetails(libusb_device* device)
 /**
  * Print the USB device information of the connected TIM3xx devices to the console.
  */
-void SickTim3xxCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** devices)
+void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** devices)
 {
   ssize_t i;
   for (i = 0; i < numberOfDevices; i++)
@@ -260,7 +260,7 @@ void SickTim3xxCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, l
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTim3xxCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
+int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
   if (device_handle_ == NULL) {
     ROS_ERROR("LIBUSB - device not open");
@@ -313,7 +313,7 @@ int SickTim3xxCommonUsb::sendSOPASCommand(const char* request, std::vector<unsig
 /*
  * provided as a separate method (not inside constructor) so we can return error codes
  */
-int SickTim3xxCommonUsb::init_device()
+int SickTimCommonUsb::init_device()
 {
   /*
    * Create and initialize a new LIBUSB session.
@@ -367,8 +367,8 @@ int SickTim3xxCommonUsb::init_device()
   libusb_open(devices_[0], &device_handle_);
   if (device_handle_ == NULL)
   {
-    ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim3xx/udev/README");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device; please read sick_tim3xx/udev/README.");
+    ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim/udev/README");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device; please read sick_tim/udev/README.");
     return EXIT_FAILURE;
   }
   else
@@ -403,7 +403,7 @@ int SickTim3xxCommonUsb::init_device()
   return EXIT_SUCCESS;
 }
 
-int SickTim3xxCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
+int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
 {
   int result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, bufferSize - 1, actual_length,
                                 USB_TIMEOUT);   // read up to bufferSize - 1 to leave space for \0
@@ -428,4 +428,4 @@ int SickTim3xxCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSi
   return EXIT_SUCCESS;
 }
 
-} /* namespace sick_tim3xx */
+} /* namespace sick_tim */

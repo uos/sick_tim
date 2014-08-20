@@ -36,17 +36,17 @@
  *
  */
 
-#include <sick_tim3xx/sick_tim3xx_common.h>
+#include <sick_tim/sick_tim_common.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
+SickTimCommon::SickTimCommon(AbstractParser* parser) :
     diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser)
     // FIXME All Tims have 15Hz?
 {
-  dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig>::CallbackType f;
-  f = boost::bind(&sick_tim3xx::SickTim3xxCommon::update_config, this, _1, _2);
+  dynamic_reconfigure::Server<sick_tim::SickTimConfig>::CallbackType f;
+  f = boost::bind(&sick_tim::SickTimCommon::update_config, this, _1, _2);
   dynamic_reconfigure_server_.setCallback(f);
 
   // datagram publisher (only for debug)
@@ -67,7 +67,7 @@ SickTim3xxCommon::SickTim3xxCommon(AbstractParser* parser) :
   ROS_ASSERT(diagnosticPub_ != NULL);
 }
 
-int SickTim3xxCommon::stop_scanner()
+int SickTimCommon::stop_scanner()
 {
   /*
    * Stop streaming measurements
@@ -83,16 +83,16 @@ int SickTim3xxCommon::stop_scanner()
   return result;
 }
 
-SickTim3xxCommon::~SickTim3xxCommon()
+SickTimCommon::~SickTimCommon()
 {
   delete diagnosticPub_;
   delete parser_;
 
-  printf("sick_tim3xx driver exiting.\n");
+  printf("sick_tim driver exiting.\n");
 }
 
 
-int SickTim3xxCommon::init()
+int SickTimCommon::init()
 {
   int result = init_device();
   if(result != 0) {
@@ -106,7 +106,7 @@ int SickTim3xxCommon::init()
   return result;
 }
 
-int SickTim3xxCommon::init_scanner()
+int SickTimCommon::init_scanner()
 {
   /*
    * Read the SOPAS variable 'DeviceIdent' by index.
@@ -173,7 +173,7 @@ int SickTim3xxCommon::init_scanner()
   return EXIT_SUCCESS;
 }
 
-int SickTim3xxCommon::loopOnce()
+int SickTimCommon::loopOnce()
 {
   diagnostics_.update();
 
@@ -210,7 +210,7 @@ int SickTim3xxCommon::loopOnce()
   return EXIT_SUCCESS; // return success to continue looping
 }
 
-void SickTim3xxCommon::check_angle_range(SickTim3xxConfig &conf)
+void SickTimCommon::check_angle_range(SickTimConfig &conf)
 {
   if (conf.min_ang > conf.max_ang)
   {
@@ -219,10 +219,10 @@ void SickTim3xxCommon::check_angle_range(SickTim3xxConfig &conf)
   }
 }
 
-void SickTim3xxCommon::update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level)
+void SickTimCommon::update_config(sick_tim::SickTimConfig &new_config, uint32_t level)
 {
   check_angle_range(new_config);
   config_ = new_config;
 }
 
-} /* namespace sick_tim3xx */
+} /* namespace sick_tim */
