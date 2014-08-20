@@ -32,31 +32,31 @@
  *
  */
 
-#include <sick_tim3xx/sick_tim3xx_datagram_test.h>
+#include <sick_tim/sick_tim_datagram_test.h>
 
-#include <sick_tim3xx/sick_tim310s01_parser.h>
+#include <sick_tim/sick_tim310s01_parser.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-SickTim3xxDatagramTest::SickTim3xxDatagramTest(AbstractParser* parser) :
+SickTimDatagramTest::SickTimDatagramTest(AbstractParser* parser) :
     parser_(parser)
 {
   //dynamic_reconfigure_server_.getConfigDefault(config_);
-  dynamic_reconfigure::Server<sick_tim3xx::SickTim3xxConfig>::CallbackType f;
-  f = boost::bind(&sick_tim3xx::SickTim3xxDatagramTest::update_config, this, _1, _2);
+  dynamic_reconfigure::Server<sick_tim::SickTimConfig>::CallbackType f;
+  f = boost::bind(&sick_tim::SickTimDatagramTest::update_config, this, _1, _2);
   dynamic_reconfigure_server_.setCallback(f);
 
   pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan_from_datagram", 1000);
-  sub_ = nh_.subscribe("datagram", 1, &SickTim3xxDatagramTest::datagramCB, this);
+  sub_ = nh_.subscribe("datagram", 1, &SickTimDatagramTest::datagramCB, this);
 }
 
-SickTim3xxDatagramTest::~SickTim3xxDatagramTest()
+SickTimDatagramTest::~SickTimDatagramTest()
 {
   delete parser_;
 }
 
-void SickTim3xxDatagramTest::datagramCB(const std_msgs::String::ConstPtr &datagram_msg)
+void SickTimDatagramTest::datagramCB(const std_msgs::String::ConstPtr &datagram_msg)
 {
   sensor_msgs::LaserScan scan_msg;
 
@@ -70,7 +70,7 @@ void SickTim3xxDatagramTest::datagramCB(const std_msgs::String::ConstPtr &datagr
     ROS_ERROR("parse_datagram returned %d!", success);
 }
 
-void SickTim3xxDatagramTest::check_angle_range(SickTim3xxConfig &conf)
+void SickTimDatagramTest::check_angle_range(SickTimConfig &conf)
 {
   if (conf.min_ang > conf.max_ang)
   {
@@ -79,20 +79,20 @@ void SickTim3xxDatagramTest::check_angle_range(SickTim3xxConfig &conf)
   }
 }
 
-void SickTim3xxDatagramTest::update_config(sick_tim3xx::SickTim3xxConfig &new_config, uint32_t level)
+void SickTimDatagramTest::update_config(sick_tim::SickTimConfig &new_config, uint32_t level)
 {
   check_angle_range(new_config);
   config_ = new_config;
 }
 
-} /* namespace sick_tim3xx */
+} /* namespace sick_tim */
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "sick_tim3xx_datagram_test");
+  ros::init(argc, argv, "sick_tim_datagram_test");
 
-  sick_tim3xx::SickTim310S01Parser* parser = new sick_tim3xx::SickTim310S01Parser();
-  sick_tim3xx::SickTim3xxDatagramTest s((sick_tim3xx::AbstractParser*)parser);
+  sick_tim::SickTim310S01Parser* parser = new sick_tim::SickTim310S01Parser();
+  sick_tim::SickTimDatagramTest s((sick_tim::AbstractParser*)parser);
 
   ros::spin();
 

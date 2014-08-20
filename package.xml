@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>sick_tim3xx</name>
+  <name>sick_tim</name>
   <version>0.0.1</version>
   <description>
     A ROS driver for the SICK TiM series of laser scanners.

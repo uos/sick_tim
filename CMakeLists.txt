@@ -16,7 +16,7 @@ find_library(libusb_LIBRARIES
              HINTS /usr/lib/ /usr/x86_64-linux-gnu/
              PATH_SUFFIXES lib)
 
-generate_dynamic_reconfigure_options(cfg/SickTim3xx.cfg)
+generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
 
 catkin_package(
     DEPENDS libusb
@@ -25,8 +25,8 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
 
 add_library(sick_tim_3xx
-    src/sick_tim3xx_common.cpp
-    src/sick_tim3xx_common_usb.cpp
+    src/sick_tim_common.cpp
+    src/sick_tim_common_usb.cpp
     src/abstract_parser.cpp)
 add_dependencies(sick_tim_3xx ${PROJECT_NAME}_gencfg)
 target_link_libraries(sick_tim_3xx
@@ -50,15 +50,15 @@ target_link_libraries(sick_tim310_1130000m01 sick_tim_3xx)
 
 add_executable(sick_tim551_2050001
     src/sick_tim551_2050001.cpp
-    src/sick_tim3xx_common_tcp.cpp
+    src/sick_tim_common_tcp.cpp
     src/sick_tim551_2050001_parser.cpp)
 target_link_libraries(sick_tim551_2050001 sick_tim_3xx)
 
-add_executable(sick_tim3xx_datagram_test
-    test/sick_tim3xx_datagram_test.cpp
+add_executable(sick_tim_datagram_test
+    test/sick_tim_datagram_test.cpp
     src/sick_tim310s01_parser.cpp
     src/abstract_parser.cpp)
-target_link_libraries(sick_tim3xx_datagram_test sick_tim_3xx)
+target_link_libraries(sick_tim_datagram_test sick_tim_3xx)
 
 install(TARGETS sick_tim_3xx
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
@@ -69,7 +69,7 @@ install(
         sick_tim310
         sick_tim310_1130000m01
         sick_tim551_2050001
-        sick_tim3xx_datagram_test
+        sick_tim_datagram_test
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch/
