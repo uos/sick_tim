@@ -36,15 +36,15 @@
  *
  */
 
-#include <sick_tim3xx/sick_tim3xx_common_usb.h>
-#include <sick_tim3xx/sick_tim310_1130000m01_parser.h>
+#include <sick_tim/sick_tim_common_usb.h>
+#include <sick_tim/sick_tim310_1130000m01_parser.h>
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "sick_tim310_1130000m01");
 
-  sick_tim3xx::SickTim3101130000M01Parser* parser = new sick_tim3xx::SickTim3101130000M01Parser();
-  sick_tim3xx::SickTim3xxCommonUsb s((sick_tim3xx::AbstractParser*)parser);
+  sick_tim::SickTim3101130000M01Parser* parser = new sick_tim::SickTim3101130000M01Parser();
+  sick_tim::SickTimCommonUsb s((sick_tim::AbstractParser*)parser);
 
   int result = s.init();
   while (ros::ok() && (result == EXIT_SUCCESS))

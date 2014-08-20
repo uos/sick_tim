@@ -33,9 +33,9 @@
  *
  */
 
-#include <sick_tim3xx/sick_tim3xx_common_usb.h>
-#include <sick_tim3xx/sick_tim3xx_common_tcp.h>
-#include <sick_tim3xx/sick_tim551_2050001_parser.h>
+#include <sick_tim/sick_tim_common_usb.h>
+#include <sick_tim/sick_tim_common_tcp.h>
+#include <sick_tim/sick_tim551_2050001_parser.h>
 
 int main(int argc, char **argv)
 {
@@ -49,12 +49,12 @@ int main(int argc, char **argv)
       useTCP = true;
   }
 
-  sick_tim3xx::SickTim5512050001Parser* parser = new sick_tim3xx::SickTim5512050001Parser();
-  sick_tim3xx::SickTim3xxCommon* s = NULL;
+  sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
+  sick_tim::SickTimCommon* s = NULL;
   if(useTCP)
-      s = new sick_tim3xx::SickTim3xxCommonTcp(hostname, parser);
+      s = new sick_tim::SickTimCommonTcp(hostname, parser);
   else
-      s = new sick_tim3xx::SickTim3xxCommonUsb(parser);
+      s = new sick_tim::SickTimCommonUsb(parser);
 
   int result = s->init();
   while (ros::ok() && (result == EXIT_SUCCESS))

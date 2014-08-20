@@ -32,11 +32,11 @@
  *
  */
 
-#include <sick_tim3xx/sick_tim310s01_parser.h>
+#include <sick_tim/sick_tim310s01_parser.h>
 
 #include <ros/ros.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
 SickTim310S01Parser::SickTim310S01Parser() :
@@ -48,7 +48,7 @@ SickTim310S01Parser::~SickTim310S01Parser()
 {
 }
 
-int SickTim310S01Parser::parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config,
+int SickTim310S01Parser::parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
                                      sensor_msgs::LaserScan &msg)
 {
   static const size_t NUM_FIELDS = 580;
@@ -223,4 +223,4 @@ int SickTim310S01Parser::parse_datagram(char* datagram, size_t datagram_length, 
   return EXIT_SUCCESS;
 }
 
-} /* namespace sick_tim3xx */
+} /* namespace sick_tim */

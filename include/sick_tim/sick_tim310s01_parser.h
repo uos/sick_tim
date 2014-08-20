@@ -32,23 +32,23 @@
  *
  */
 
-#ifndef SICK_TIM310_1130000M01_PARSER_H_
-#define SICK_TIM310_1130000M01_PARSER_H_
+#ifndef SICK_TIM310S01_PARSER_H_
+#define SICK_TIM310S01_PARSER_H_
 
-#include <sick_tim3xx/abstract_parser.h>
+#include <sick_tim/abstract_parser.h>
 
-namespace sick_tim3xx
+namespace sick_tim
 {
 
-class SickTim3101130000M01Parser : public AbstractParser
+class SickTim310S01Parser : public AbstractParser
 {
 public:
-  SickTim3101130000M01Parser();
-  virtual ~SickTim3101130000M01Parser();
+  SickTim310S01Parser();
+  virtual ~SickTim310S01Parser();
 
-  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTim3xxConfig &config,
+  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
                              sensor_msgs::LaserScan &msg);
 };
 
-} /* namespace sick_tim3xx */
-#endif /* SICK_TIM310_1130000M01_PARSER_H_ */
+} /* namespace sick_tim */
+#endif /* SICK_TIM310S01_PARSER_H_ */
