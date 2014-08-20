@@ -8,6 +8,6 @@
   <author>Maintained by Jochen Sprickerhof and Martin Günther</author>
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
-  <url>http://wiki.ros.org/sick_tim3xx</url>
+  <url>http://wiki.ros.org/sick_tim</url>
   <depend stack="ros" />
 </stack>
