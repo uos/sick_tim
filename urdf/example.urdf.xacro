@@ -7,5 +7,5 @@
 
   <include filename="$(find sick_tim)/urdf/sick_tim.urdf.xacro" />
 
-  <xacro:sick_tim laser_link="laser" />
+  <xacro:sick_tim310 name="laser" ros_topic="scan" />
 </robot>
