@@ -8,13 +8,8 @@ find_package(catkin REQUIRED
       dynamic_reconfigure
       driver_base)
 
-find_path(libusb_INCLUDE_DIRS 
-          NAMES libusb.h
-          HINTS /usr/include/libusb-1.0)
-find_library(libusb_LIBRARIES
-             NAMES usb-1.0
-             HINTS /usr/lib/ /usr/x86_64-linux-gnu/
-             PATH_SUFFIXES lib)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(libusb libusb-1.0)
 
 generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
 
