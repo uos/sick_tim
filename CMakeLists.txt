@@ -21,6 +21,7 @@ generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
 catkin_package(
     DEPENDS libusb
     CATKIN_DEPENDS sensor_msgs
+    LIBRARIES sick_tim_3xx
     INCLUDE_DIRS include)
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
