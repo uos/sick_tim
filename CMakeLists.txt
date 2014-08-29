@@ -28,7 +28,7 @@ add_library(sick_tim_3xx
     src/sick_tim_common.cpp
     src/sick_tim_common_usb.cpp
     src/abstract_parser.cpp)
-add_dependencies(sick_tim_3xx ${PROJECT_NAME}_gencfg)
+add_dependencies(sick_tim_3xx ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sick_tim_3xx
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
