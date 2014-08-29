@@ -20,7 +20,8 @@ generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
 
 catkin_package(
     DEPENDS libusb
-    CATKIN_DEPENDS sensor_msgs)
+    CATKIN_DEPENDS sensor_msgs
+    INCLUDE_DIRS include)
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
 
@@ -71,6 +72,11 @@ install(
         sick_tim551_2050001
         sick_tim_datagram_test
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+install(FILES include/${PROJECT_NAME}/abstract_parser.h
+              include/${PROJECT_NAME}/sick_tim_common.h
+              include/${PROJECT_NAME}/sick_tim_common_usb.h
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
 install(DIRECTORY launch/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
