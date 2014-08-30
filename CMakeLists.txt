@@ -20,7 +20,9 @@ generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
 
 catkin_package(
     DEPENDS libusb
-    CATKIN_DEPENDS sensor_msgs)
+    CATKIN_DEPENDS sensor_msgs
+    LIBRARIES sick_tim_3xx
+    INCLUDE_DIRS include)
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
 
@@ -28,7 +30,7 @@ add_library(sick_tim_3xx
     src/sick_tim_common.cpp
     src/sick_tim_common_usb.cpp
     src/abstract_parser.cpp)
-add_dependencies(sick_tim_3xx ${PROJECT_NAME}_gencfg)
+add_dependencies(sick_tim_3xx ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS})
 target_link_libraries(sick_tim_3xx
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
@@ -72,5 +74,16 @@ install(
         sick_tim_datagram_test
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
+install(FILES include/${PROJECT_NAME}/abstract_parser.h
+              include/${PROJECT_NAME}/sick_tim_common.h
+              include/${PROJECT_NAME}/sick_tim_common_usb.h
+    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
 install(DIRECTORY launch/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+
+install(DIRECTORY meshes/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/meshes)
+
+install(DIRECTORY urdf/
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf)
