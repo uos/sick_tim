@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.2 (2014-09-01)
+------------------
 * Merge pull request `#15 <https://github.com/uos/sick_tim/issues/15>`_ from v4hn/libusb-pkgconfig
   use libusb's pkgconfig support
 * Merge pull request `#16 <https://github.com/uos/sick_tim/issues/16>`_ from v4hn/hydro_catkin_fixup
