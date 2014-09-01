@@ -1,0 +1,145 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Changelog for package sick_tim
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Forthcoming
+-----------
+* Merge pull request `#15 <https://github.com/uos/sick_tim/issues/15>`_ from v4hn/libusb-pkgconfig
+  use libusb's pkgconfig support
+* Merge pull request `#16 <https://github.com/uos/sick_tim/issues/16>`_ from v4hn/hydro_catkin_fixup
+  fixup hydro catkinize
+* mark libsick_tim_3xx as exported
+* export headers related to libsick_tim3xx
+  As far as I know nobody uses them right now,
+  but as we install the library, why not provide the interface?
+* install meshes & urdf
+* add missing external dependencies
+  make sure msg headers are built before sick_tim_3xx
+* use libusb's pkgconfig support
+  This streamlines sick_tim's libusb detection.
+* updated URDF: restructuring, add TiM 511
+* renamed sick_tim.stl
+* added mesh for tim551
+* completed rename: sick_tim3xx -> sick_tim
+  perl -e 's/sick_tim3xx/sick_tim/g' -pi $(git ls-files)
+  perl -e 's/SickTim3xx/SickTim/g' -pi $(git ls-files)
+  rename 's/sick_tim3xx/sick_tim/g' $(git ls-files)
+  rename 's/SickTim3xx/SickTim/g' $(git ls-files)
+* Rename sick_tim3xx -> sick_tim
+* Merge pull request `#13 <https://github.com/uos/sick_tim/issues/13>`_ from MadEgg/hydro_improved_tim551
+  Hydro improved tim551
+* Modified SICK TIM551 parser to accept reduced scanning range and to read out and publish intensity data. Also fixes breaking when a device name has been set.
+  Replace hacky bare socket handling with proper boost::asio socket handling in sick_tim3xx_common_tcp.cpp. Introduces dependency on boost::asio 1.46
+  Fully functional and tested on tim551.
+* omit libusb-1.0 prefix
+  automatically configured by CMake
+* sick_tim551 launch: add example snippet for enabling TCP
+* CMakeLists: rename libsick -> libsick_tim_3xx
+  libsick.so was too generic and may cause name conflicts later on
+* package.xml: fix incorrect build_depend + run_depend
+  build_depend and run_depend can only use either the name of a ros
+  package, or something listed in `rosdep db`.
+* CMakeLists: add missing catkin_depends, fix depends
+* CMakeLists: don't export include dir / libary
+  The previous configuration was incorrect: we exported an include path
+  that we didn't install. One way to fix this would have been to install
+  the headers, but since we don't expect any package outside of
+  sick_tim3xx to be using our library, it's better not to install it at
+  all.
+* Merge pull request `#12 <https://github.com/uos/sick_tim/issues/12>`_ from efernandez/hydro_catkin
+  sets dependencies and linking in the library
+* sets dependencies and linking in the library
+* Merge pull request `#11 <https://github.com/uos/sick_tim/issues/11>`_ from efernandez/hydro_catkin
+  renames libsick to sick, so we have libsick.so
+* renames libsick to sick, so we have libsick.so
+* package.xml: update email addresses, remove .gitignore
+* catkinizes sick_tim3xx
+* updated manifest.xml
+  closes `#8 <https://github.com/uos/sick_tim/issues/8>`_
+* common_usb: increase USB_TIMEOUT from 500 to 1000 ms
+  This is necessary to make the tim310 work. It (strangely) only publishes
+  with 1.875 Hz = one message every 533 ms, so a timeout of 500 ms always
+  caused a LIBUSB_ERROR_TIMEOUT.
+  This closes `#7 <https://github.com/uos/sick_tim/issues/7>`_.
+* fix node name in launch files
+* urdf: removed box_inertial_with_origin xacro macro
+  this conflicted with a new macro of the same name in
+  uos_common_urdf/common.xacro
+* fixed warning message
+* add select() calls before reading in TCP mode.
+  Now diagnostics won't go stale when the device is unplugged but report
+  missing data errors correctly. The driver reconnects when the cable is
+  plugged again.
+* adjusted parameters from real scanner
+* Added diagnostics support.
+* ~hostname determines if TCP or USB is used.
+  Also removed sick_tim3xx_common_tcp from Tim3xx binaries.
+* add TCP connection
+* prepare option for TCP on sick_tim551_2050001
+* split sick_tim3xx_common into common and usb specific stuff
+* merged fix from diamondback branch
+* updated stack.xml
+* add driver for SICK TiM551
+* include -> xacro:include
+* Don't publish message if there was a parsing error
+* more verbose warning when using wrong node
+* add launch files for new nodes
+* new node sick_tim310_1130000m01 (experimental)
+* new node sick_tim310 (experimental)
+* renamed sick_tim3xx node to sick_tim310s01
+* add test node: sick_tim3xx_datagram_test
+* refactoring: split parse_datagram() into own class
+* refactoring: split out common code into sick_tim3xx_common
+* refactoring: extract function parse_datagram()
+* when receiving more fields than expected, print number of fields
+* add optional datagram publishing (for debug)
+* check return code of init_usb(), exit on failure
+* Change udev rule from MODE to GROUP
+  User needs to be a member of the plugdev group!
+  New udev releases contain a 91-permissions.rules which overwrites the
+  MODE="0666". An other workaround would be to move the
+  81-sick-tim3xx.rules after the 91-permissions.rules. This patch
+  implements a proper fix, which is to use the plugdev group instead.
+* update URDF to be compatible with Gazebo 1.5
+  In the ros-groovy-simulator-gazebo update to 1.7.12, Gazebo was switched
+  over to 1.5, which breaks compatibility with old-style URDFs. This
+  commit updates to the new version.
+* modified rosdep dependency for compatibility with fuerte
+* updated .gitignore
+* fix max_angle calculation
+* add support for dynamic_reconfigure parameters
+* don't dump scans to rosout on error
+  usually, this happens when we're lagging behind due to a different
+  error; printing the stuff to rosout slows down the whole process enough
+  so we never catch up.
+* changed default laser_frame to "laser", made xacro macro
+* adjust time stamp
+  - last scan point = now  ==>  first scan point = now - 271 * time increment
+  - also just assume 0.001 s USB latency between scanner and PC for now
+  this avoids TF ExtrapolationExceptions (cannot project into future)
+* fixed frame name in gazebo URDF
+* URDF: renamed changed box_inertial
+  ... because it doesn't play well with our other URDFs in
+  kurt_description
+* URDF: introduced xacro properties for constants
+* add launch file
+* add URDF file and mesh for scanner
+* shift angle_min and angle_max by -PI/2
+  now angle_min = -135° and angle_max = +135°
+* turned everything into a class
+  reason: this allows us to call all the cleanup code from the destructor,
+  so we can make sure it's called every time we exit
+* properly exit on error, improved logging
+* change default frame name to fully qualified /laser_link
+* fix illegal write detected by valgrind
+* updated udev README
+* working implementation
+* copy SICK example code, start conversion to ROS
+* description in manifest
+* add includes, rosdep dependency on libusb
+* add BSD license header
+* add udev rules
+* add code skeleton for node
+* add roscpp dependency
+* initial commit
+* Contributors: Christian Dornhege, Egbert van der Wal, Jochen Sprickerhof, Martin Günther, Michael Görner, enriquefernandez, v4hn
