@@ -3,6 +3,7 @@ project(sick_tim)
 
 find_package(catkin REQUIRED
     COMPONENTS
+      roscpp
       sensor_msgs
       diagnostic_updater
       dynamic_reconfigure
@@ -11,11 +12,13 @@ find_package(catkin REQUIRED
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libusb libusb-1.0)
 
+find_package(Boost REQUIRED COMPONENTS system)
+
 generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
 
 catkin_package(
-    DEPENDS libusb
-    CATKIN_DEPENDS sensor_msgs
+    DEPENDS Boost libusb
+    CATKIN_DEPENDS roscpp sensor_msgs diagnostic_updater dynamic_reconfigure
     LIBRARIES sick_tim_3xx
     INCLUDE_DIRS include)
 
