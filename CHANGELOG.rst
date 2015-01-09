@@ -2,6 +2,19 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge pull request `#20 <https://github.com/uos/sick_tim/issues/20>`_ from jspricke/fix_19
+  Fixes for `#19 <https://github.com/uos/sick_tim/issues/19>`_
+* Increase get_datagram timout to 1 second, Closes: `#19 <https://github.com/uos/sick_tim/issues/19>`_
+* Add ROS param for TCP port (defaults to 2112)
+* fix dependencies in CMakeLists
+  All non-catkin things that we expose in our headers should be added to
+  the DEPENDS, so that packages which depend on our package will also
+  automatically link against it.
+  Also see: http://answers.ros.org/question/58498/what-is-the-purpose-of-catkin_depends/`#58593 <https://github.com/uos/sick_tim/issues/58593>`_
+* Contributors: Jochen Sprickerhof, Martin Günther
+
 0.0.2 (2014-09-01)
 ------------------
 * Merge pull request `#15 <https://github.com/uos/sick_tim/issues/15>`_ from v4hn/libusb-pkgconfig
