@@ -48,11 +48,13 @@ int main(int argc, char **argv)
   if(nhPriv.getParam("hostname", hostname)) {
       useTCP = true;
   }
+  std::string port;
+  nhPriv.param<std::string>("port", port, "2112");
 
   sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
   sick_tim::SickTimCommon* s = NULL;
   if(useTCP)
-      s = new sick_tim::SickTimCommonTcp(hostname, parser);
+      s = new sick_tim::SickTimCommonTcp(hostname, port, parser);
   else
       s = new sick_tim::SickTimCommonUsb(parser);
 

@@ -42,12 +42,13 @@
 namespace sick_tim
 {
 
-SickTimCommonTcp::SickTimCommonTcp(const std::string & hostname, AbstractParser* parser) 
+SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, AbstractParser* parser)
 :
     SickTimCommon(parser),
     socket_(io_service_),
     deadline_(io_service_),
-    hostname_(hostname)
+    hostname_(hostname),
+    port_(port)
 {
     // Set up the deadline actor to implement timeouts.
     // Based on blocking TCP example on:
@@ -73,7 +74,7 @@ int SickTimCommonTcp::init_device()
     try
     {
         tcp::resolver resolver(io_service_);
-        tcp::resolver::query query(hostname_, "2112");
+        tcp::resolver::query query(hostname_, port_);
         iterator = resolver.resolve(query);
     }
     catch (boost::system::system_error &e)
@@ -113,7 +114,7 @@ int SickTimCommonTcp::init_device()
     // Check if connecting succeeded
     if (!success)
     {
-        ROS_FATAL("Could not connect to host %s", hostname_.c_str());
+        ROS_FATAL("Could not connect to host %s:%s", hostname_.c_str(), port_.c_str());
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Could not connect to host.");
         return EXIT_FAILURE;
     }
