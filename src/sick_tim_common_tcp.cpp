@@ -277,8 +277,8 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
      */
     std::vector<unsigned char> reply;
 
-    // Wait at most 500ms for a new scan
-    size_t timeout = 500;
+    // Wait at most 1000ms for a new scan
+    size_t timeout = 1000;
     bool exception_occured = false;
 
     char *buffer = reinterpret_cast<char *>(receiveBuffer);
