@@ -17,6 +17,7 @@
 
     <!-- Enables TCP instead of USB connection; `hostname` is the host name or IP address of the laser scanner
          <param name="hostname" type="string" value="192.168.1.43" />
+         <param name="port" type="string" value="2112" />
     -->
   </node>
 </launch>
