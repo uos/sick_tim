@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.3 (2015-01-09)
+------------------
 * Merge pull request `#20 <https://github.com/uos/sick_tim/issues/20>`_ from jspricke/fix_19
   Fixes for `#19 <https://github.com/uos/sick_tim/issues/19>`_
 * Increase get_datagram timout to 1 second, Closes: `#19 <https://github.com/uos/sick_tim/issues/19>`_
