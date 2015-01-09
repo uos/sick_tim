@@ -48,7 +48,7 @@ namespace sick_tim
 class SickTimCommonTcp : public SickTimCommon
 {
 public:
-  SickTimCommonTcp(const std::string & hostname, AbstractParser* parser);
+  SickTimCommonTcp(const std::string &hostname, const std::string &port, AbstractParser* parser);
   virtual ~SickTimCommonTcp();
 
 protected:
@@ -80,6 +80,7 @@ private:
   size_t bytes_transfered_;
 
   std::string hostname_;
+  std::string port_;
 };
 
 inline void SickTimCommonTcp::handleRead(boost::system::error_code error, size_t bytes_transfered)
