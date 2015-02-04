@@ -37,21 +37,32 @@
  */
 
 #include <sick_tim/sick_tim_common_usb.h>
+#include <sick_tim/sick_tim_common_mockup.h>
 #include <sick_tim/sick_tim310s01_parser.h>
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "sick_tim310s01");
+  ros::NodeHandle nhPriv("~");
+
+  bool subscribe_datagram;
+  nhPriv.param("subscribe_datagram", subscribe_datagram, false);
 
   sick_tim::SickTim310S01Parser* parser = new sick_tim::SickTim310S01Parser();
-  sick_tim::SickTimCommonUsb s((sick_tim::AbstractParser*)parser);
 
-  int result = s.init();
+  sick_tim::SickTimCommon* s;
+  if (subscribe_datagram)
+    s = new sick_tim::SickTimCommonMockup(parser);
+  else
+    s = new sick_tim::SickTimCommonUsb(parser);
+
+  int result = s->init();
   while (ros::ok() && (result == EXIT_SUCCESS))
   {
     ros::spinOnce();
-    result = s.loopOnce();
+    result = s->loopOnce();
   }
 
+  delete s;
   return result;
 }

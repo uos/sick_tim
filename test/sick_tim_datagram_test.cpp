@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "sick_tim_datagram_test");
 
   sick_tim::SickTim310S01Parser* parser = new sick_tim::SickTim310S01Parser();
-  sick_tim::SickTimDatagramTest s((sick_tim::AbstractParser*)parser);
+  sick_tim::SickTimDatagramTest s(parser);
 
   ros::spin();
 

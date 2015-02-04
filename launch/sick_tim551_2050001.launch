@@ -13,6 +13,7 @@
       <param name="frame_id" type="str" value="laser" />
       <param name="time_offset" type="double" value="-0.001" />
       <param name="publish_datagram" type="bool" value="False" />
+      <param name="subscribe_datagram" type="bool" value="false" />
     -->
 
     <!-- Enables TCP instead of USB connection; `hostname` is the host name or IP address of the laser scanner
