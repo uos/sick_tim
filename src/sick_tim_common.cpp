@@ -209,7 +209,7 @@ int SickTimCommon::loopOnce()
    */
   char* buffer_pos = (char*)receiveBuffer;
   char *dstart, *dend;
-  while( (dstart = strchr(buffer_pos, 0x02)) && (dend = strchr(buffer_pos, 0x03)) )
+  while( (dstart = strchr(buffer_pos, 0x02)) && (dend = strchr(dstart + 1, 0x03)) )
   {
     size_t dlength = dend - dstart;
     *dend = '\0';
