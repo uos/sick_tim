@@ -82,7 +82,7 @@ int SickTimCommonMockup::init_scanner()
 
 int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
 {
-  ROS_INFO("Mockup - get_datagram()");
+  ROS_DEBUG("Mockup - get_datagram()");
 
   // wait for next datagram
   while(!datagram_msg_)
