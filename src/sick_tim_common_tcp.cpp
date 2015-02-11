@@ -42,17 +42,19 @@
 namespace sick_tim
 {
 
-SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, AbstractParser* parser)
+SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, const std::string &timelimit, AbstractParser* parser)
 :
     SickTimCommon(parser),
     socket_(io_service_),
     deadline_(io_service_),
     hostname_(hostname),
-    port_(port)
+    port_(port),
+    timelimit_(timelimit)
 {
     // Set up the deadline actor to implement timeouts.
     // Based on blocking TCP example on:
     // http://www.boost.org/doc/libs/1_46_0/doc/html/boost_asio/example/timeouts/blocking_tcp_client.cpp
+
     deadline_.expires_at(boost::posix_time::pos_infin);
     checkDeadline();
 }
@@ -92,8 +94,9 @@ int SickTimCommonTcp::init_device()
         std::string repr = boost::lexical_cast<std::string>(iterator->endpoint());
         socket_.close();
 
-        // Time out in 5 seconds
-        deadline_.expires_from_now(boost::posix_time::seconds(5));
+        // Set the time out length
+        ROS_INFO("Waiting %i seconds for device to conenct.", atoi(timelimit_.c_str()));
+        deadline_.expires_from_now(boost::posix_time::seconds(atoi(timelimit_.c_str())));
 
         ec = boost::asio::error::would_block;
         ROS_DEBUG("Attempting to connect to %s", repr.c_str());
@@ -108,7 +111,7 @@ int SickTimCommonTcp::init_device()
             ROS_INFO("Succesfully connected to %s", repr.c_str());
             break;
         }
-        ROS_ERROR("Failed to connect to %s", repr.c_str());
+        ROS_ERROR("Failed to connect with %s", repr.c_str());
     }
 
     // Check if connecting succeeded

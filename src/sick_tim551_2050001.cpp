@@ -52,6 +52,9 @@ int main(int argc, char **argv)
   std::string port;
   nhPriv.param<std::string>("port", port, "2112");
 
+  std::string timelimit;
+  nhPriv.param<std::string>("timelimit", timelimit, "10");
+
   bool subscribe_datagram;
   nhPriv.param("subscribe_datagram", subscribe_datagram, false);
 
@@ -60,7 +63,7 @@ int main(int argc, char **argv)
   if (subscribe_datagram)
     s = new sick_tim::SickTimCommonMockup(parser);
   else if (useTCP)
-    s = new sick_tim::SickTimCommonTcp(hostname, port, parser);
+    s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser);
   else
     s = new sick_tim::SickTimCommonUsb(parser);
 
