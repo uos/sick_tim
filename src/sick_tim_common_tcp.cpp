@@ -42,13 +42,14 @@
 namespace sick_tim
 {
 
-SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, AbstractParser* parser)
+SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, AbstractParser* parser)
 :
     SickTimCommon(parser),
     socket_(io_service_),
     deadline_(io_service_),
     hostname_(hostname),
-    port_(port)
+    port_(port),
+    timelimit_(timelimit)
 {
     // Set up the deadline actor to implement timeouts.
     // Based on blocking TCP example on:
@@ -92,8 +93,9 @@ int SickTimCommonTcp::init_device()
         std::string repr = boost::lexical_cast<std::string>(iterator->endpoint());
         socket_.close();
 
-        // Time out in 5 seconds
-        deadline_.expires_from_now(boost::posix_time::seconds(5));
+        // Set the time out length
+        ROS_INFO("Waiting %i seconds for device to connect.", timelimit_);
+        deadline_.expires_from_now(boost::posix_time::seconds(timelimit_));
 
         ec = boost::asio::error::would_block;
         ROS_DEBUG("Attempting to connect to %s", repr.c_str());
