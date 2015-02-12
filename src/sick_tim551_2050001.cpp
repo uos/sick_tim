@@ -52,8 +52,8 @@ int main(int argc, char **argv)
   std::string port;
   nhPriv.param<std::string>("port", port, "2112");
 
-  std::string timelimit;
-  nhPriv.param<std::string>("timelimit", timelimit, "10");
+  int timelimit;
+  nhPriv.param("timelimit", timelimit, 10);
 
   bool subscribe_datagram;
   nhPriv.param("subscribe_datagram", subscribe_datagram, false);

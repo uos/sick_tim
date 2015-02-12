@@ -23,7 +23,7 @@
     <!-- In cases where a race condition exists and the computer boots up before the TIM is ready, increase 'timelimit.' -->
       <param name="hostname" type="string" value="192.168.1.14" />
       <param name="port" type="string" value="2112" />
-      <param name="timelimit" type="string" value="5" />
+      <param name="timelimit" type="string" value="10" />
 
   </node>
 </launch>
