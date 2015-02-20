@@ -42,7 +42,7 @@
 namespace sick_tim
 {
 
-SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, const std::string &timelimit, AbstractParser* parser)
+SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, AbstractParser* parser)
 :
     SickTimCommon(parser),
     socket_(io_service_),
@@ -95,8 +95,8 @@ int SickTimCommonTcp::init_device()
         socket_.close();
 
         // Set the time out length
-        ROS_INFO("Waiting %i seconds for device to conenct.", atoi(timelimit_.c_str()));
-        deadline_.expires_from_now(boost::posix_time::seconds(atoi(timelimit_.c_str())));
+        ROS_INFO("Waiting %i seconds for device to connect.", timelimit_);
+        deadline_.expires_from_now(boost::posix_time::seconds(timelimit_));
 
         ec = boost::asio::error::would_block;
         ROS_DEBUG("Attempting to connect to %s", repr.c_str());
