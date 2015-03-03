@@ -104,9 +104,9 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   unsigned short int number_of_data = 0;
   sscanf(fields[25], "%hx", &number_of_data);
 
-  if (number_of_data < 1 || number_of_data > 271)
+  if (number_of_data < 1 || number_of_data > 811)
   {
-    ROS_WARN("Data length is outside acceptable range 1-271 (%d). Ignoring scan", number_of_data);
+    ROS_WARN("Data length is outside acceptable range 1-811 (%d). Ignoring scan", number_of_data);
     return EXIT_FAILURE;
   }
   if (count < HEADER_FIELDS + number_of_data)
@@ -273,8 +273,8 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   msg.range_max = 10.0;
 
   // ----- adjust start time
-  // - last scan point = now  ==>  first scan point = now - 271 * time increment
-  msg.header.stamp = start_time - ros::Duration().fromSec(271 * msg.time_increment);
+  // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
+  msg.header.stamp = start_time - ros::Duration().fromSec(number_of_data * msg.time_increment);
 
   // - shift forward to time of first published scan point
   msg.header.stamp += ros::Duration().fromSec((double)index_min * msg.time_increment);
