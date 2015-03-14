@@ -48,6 +48,14 @@ public:
 
   virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
                              sensor_msgs::LaserScan &msg);
+
+  void set_range_min(float min);
+  void set_range_max(float max);
+  void set_time_increment(float time);
+
+private:
+  float override_range_min_, override_range_max_;
+  float override_time_increment_;
 };
 
 } /* namespace sick_tim */
