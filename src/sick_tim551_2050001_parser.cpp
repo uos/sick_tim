@@ -40,7 +40,10 @@ namespace sick_tim
 {
 
 SickTim5512050001Parser::SickTim5512050001Parser() :
-    AbstractParser()
+    AbstractParser(),
+    override_range_min_(0.05),
+    override_range_max_(10.0),
+    override_time_increment_(-1.0)
 {
 }
 
@@ -178,6 +181,11 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   unsigned short measurement_freq = -1;
   sscanf(fields[17], "%hx", &measurement_freq);
   msg.time_increment = 1.0 / (measurement_freq * 100.0);
+  if (override_time_increment_ > 0.0)
+  {
+    // Some lasers may report incorrect measurement frequency
+    msg.time_increment = override_time_increment_;
+  }
   // ROS_DEBUG("measurement_freq: %d, time_increment: %f", measurement_freq, msg.time_increment);
 
   // 18: Number of encoders (0)
@@ -227,7 +235,6 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   ROS_DEBUG("index_min: %d, index_max: %d", index_min, index_max);
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
-
   // 26..26 + n - 1: Data_1 .. Data_n
   msg.ranges.resize(index_max - index_min + 1);
   for (int j = index_min; j <= index_max; ++j)
@@ -269,8 +276,8 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
   //   <ETX> (\x03)
 
-  msg.range_min = 0.05;
-  msg.range_max = 10.0;
+  msg.range_min = override_range_min_;
+  msg.range_max = override_range_max_;
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
@@ -283,6 +290,21 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   msg.header.stamp += ros::Duration().fromSec(config.time_offset);
 
   return EXIT_SUCCESS;
+}
+
+void SickTim5512050001Parser::set_range_min(float min)
+{
+  override_range_min_ = min;
+}
+
+void SickTim5512050001Parser::set_range_max(float max)
+{
+  override_range_max_ = max;
+}
+
+void SickTim5512050001Parser::set_time_increment(float time)
+{
+  override_time_increment_ = time;
 }
 
 } /* namespace sick_tim */

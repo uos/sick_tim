@@ -56,6 +56,21 @@ int main(int argc, char **argv)
   nhPriv.param("subscribe_datagram", subscribe_datagram, false);
 
   sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
+
+  double param;
+  if (nhPriv.getParam("range_min", param))
+  {
+    parser->set_range_min(param);
+  }
+  if (nhPriv.getParam("range_max", param))
+  {
+    parser->set_range_max(param);
+  }
+  if (nhPriv.getParam("time_increment", param))
+  {
+    parser->set_time_increment(param);
+  }
+
   sick_tim::SickTimCommon* s = NULL;
   if (subscribe_datagram)
     s = new sick_tim::SickTimCommonMockup(parser);
