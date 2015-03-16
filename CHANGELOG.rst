@@ -2,6 +2,25 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Tim561: Make sick_tim551 node work with TiM561.
+
+  - The TiM561 has a angular resolution of 0.33°, which leads to 811 points per scan.
+  - Add warning if time_increment is inconsistent. This happens on the TiM561,
+    which reports an incorrect measurement frequency.
+  - Add ros params to override a few values, including time_increment
+    (`#24 <https://github.com/uos/sick_tim/issues/24>`_ ).
+
+* All scanners: Split datagrams up before handing them to parse_datagram.
+  This finally fixes the warning on datagrams of invalid length
+  each time multiple datagrams are read. (`#21 <https://github.com/uos/sick_tim/issues/21>`_)
+* All scanners: add subscribing to datagram topic.
+  If subscribe_datagram is set, all nodes will now process the datagrams
+  published on the datagram topic instead of reading from the physical
+  device. Useful for debugging.
+* Contributors: Jochen Sprickerhof, Martin Günther, Michael Ferguson, Michael Görner
+
 0.0.3 (2015-01-09)
 ------------------
 * Merge pull request `#20 <https://github.com/uos/sick_tim/issues/20>`_ from jspricke/fix_19
