@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.4 (2015-03-16)
+------------------
 * Tim561: Make sick_tim551 node work with TiM561.
 
   - The TiM561 has a angular resolution of 0.33°, which leads to 811 points per scan.
