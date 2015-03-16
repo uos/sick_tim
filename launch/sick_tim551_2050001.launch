@@ -14,6 +14,9 @@
       <param name="time_offset" type="double" value="-0.001" />
       <param name="publish_datagram" type="bool" value="False" />
       <param name="subscribe_datagram" type="bool" value="false" />
+      <param name="time_increment" type="double" value="0.000061722" />
+      <param name="range_min" type="double" value="0.05" />
+      <param name="range_max" type="double" value="10.0" />
     -->
 
     <!-- Enables TCP instead of USB connection; `hostname` is the host name or IP address of the laser scanner

@@ -289,6 +289,16 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // - add time offset (to account for USB latency etc.)
   msg.header.stamp += ros::Duration().fromSec(config.time_offset);
 
+  // ----- consistency check
+ float expected_time_increment = msg.scan_time * msg.angle_increment / (2.0 * M_PI);
+ if (fabs(expected_time_increment - msg.time_increment) > 0.00001)
+ {
+   ROS_WARN_THROTTLE(60, "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
+       "Expected time_increment: %.9f, reported time_increment: %.9f. "
+       "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
+       expected_time_increment, msg.time_increment);
+ }
+
   return EXIT_SUCCESS;
 }
 
