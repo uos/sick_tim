@@ -295,11 +295,7 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
         {
             sleep(1);
             ROS_INFO("Failure - attempting to reconnect");
-            int ret = init_device();
-            if (ret != EXIT_SUCCESS)
-                return ret;
-
-            return init_scanner();
+            return init();
         }
 
         return exception_occured ? EXIT_FAILURE : EXIT_SUCCESS;    // keep on trying
