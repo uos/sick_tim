@@ -2,6 +2,12 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Auto retry USB and TCP connections due to any reason; see `#25 <https://github.com/uos/sick_tim/issues/25>`_
+* Parameterized TCP timeout
+* Contributors: Chad Rockey, Martin Günther, Jochen Sprickerhof, Jeff Schmidt
+
 0.0.4 (2015-03-16)
 ------------------
 * Tim561: Make sick_tim551 node work with TiM561.
