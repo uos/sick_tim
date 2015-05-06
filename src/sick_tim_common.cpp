@@ -86,7 +86,6 @@ int SickTimCommon::stop_scanner()
 SickTimCommon::~SickTimCommon()
 {
   delete diagnosticPub_;
-  delete parser_;
 
   printf("sick_tim driver exiting.\n");
 }

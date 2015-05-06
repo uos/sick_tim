@@ -75,20 +75,30 @@ int main(int argc, char **argv)
   }
 
   sick_tim::SickTimCommon* s = NULL;
-  if (subscribe_datagram)
-    s = new sick_tim::SickTimCommonMockup(parser);
-  else if (useTCP)
-    s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser);
-  else
-    s = new sick_tim::SickTimCommonUsb(parser);
 
-  int result = s->init();
-  while (ros::ok() && (result == EXIT_SUCCESS))
+  int result = EXIT_FAILURE;
+  while (ros::ok())
   {
-    ros::spinOnce();
-    result = s->loopOnce();
+    // Atempt to connect/reconnect
+    delete s;
+    if (subscribe_datagram)
+      s = new sick_tim::SickTimCommonMockup(parser);
+    else if (useTCP)
+      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser);
+    else
+      s = new sick_tim::SickTimCommonUsb(parser);
+    result = s->init();
+
+    while(ros::ok() && (result == EXIT_SUCCESS)){
+      ros::spinOnce();
+      result = s->loopOnce();
+    }
+
+    if (ros::ok() && !subscribe_datagram && !useTCP)
+      ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
   }
 
   delete s;
+  delete parser;
   return result;
 }
