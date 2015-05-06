@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.5 (2015-05-06)
+------------------
 * Auto retry USB and TCP connections due to any reason; see `#25 <https://github.com/uos/sick_tim/issues/25>`_
 * Parameterized TCP timeout
 * Contributors: Chad Rockey, Martin Günther, Jochen Sprickerhof, Jeff Schmidt
