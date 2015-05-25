@@ -253,7 +253,7 @@ void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libu
 
   if (numberOfDevices == 0)
   {
-    ROS_INFO("LIBUSB - No SICK TIM3xx device connected.");
+    ROS_INFO("LIBUSB - No SICK TIM device connected.");
   }
 }
 
@@ -346,8 +346,8 @@ int SickTimCommonUsb::init_device()
    */
   if (numberOfDevices_ == 0)
   {
-    ROS_ERROR("No SICK TiM3xx devices connected!");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "No SICK TiM3xx devices connected!");
+    ROS_ERROR("No SICK TiM devices connected!");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "No SICK TiM devices connected!");
     return EXIT_FAILURE;
   }
   else if (numberOfDevices_ > 1)
