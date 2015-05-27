@@ -3,7 +3,7 @@
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find sick_tim)/urdf/example.urdf.xacro'" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
-  <node name="sick_tim551_2050001" pkg="sick_tim" type="sick_tim551_2050001" respawn="false" output="screen">
+  <node name="sick_tim571_2050101" pkg="sick_tim" type="sick_tim551_2050001" respawn="false" output="screen">
     <!-- default values: -->
     <!--
       <param name="min_ang" type="double" value="-2.35619449019" />
@@ -16,8 +16,8 @@
       <param name="subscribe_datagram" type="bool" value="false" />
       <param name="time_increment" type="double" value="0.000061722" />
       <param name="range_min" type="double" value="0.05" />
-      <param name="range_max" type="double" value="10.0" />
     -->
+    <param name="range_max" type="double" value="30.0" />
 
     <!-- Uncomment this to enable TCP instead of USB connection; 'hostname' is the host name or IP address of the laser scanner
     In cases where a race condition exists and the computer boots up before the TIM is ready, increase 'timelimit.'
