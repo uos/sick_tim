@@ -4,13 +4,13 @@
   <version>0.0.5</version>
   <description>
     A ROS driver for the SICK TiM series of laser scanners.
-    Currently, the pacakge supports serveral types of TiM310 and TiM551
+    Currently, the pacakge supports serveral types of TiM310, TiM551 and TiM571
     scanners.
   </description>
 
-  <maintainer email="mguenthe@uos.de">Martin Günther</maintainer>
+  <maintainer email="martin.guenther@dfki.de">Martin Günther</maintainer>
   <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
-  <author email="mguenthe@uos.de">Martin Günther</author>
+  <author email="martin.guenther@dfki.de">Martin Günther</author>
 
   <license>BSD</license>
 
@@ -29,5 +29,4 @@
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>driver_base</run_depend>
   <run_depend>libusb-1.0</run_depend>
-
 </package>
