@@ -2,6 +2,14 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* First release into Jade
+* Create sick_tim571_2050001.launch
+  This launch file can be used directly to connect to TIM571 devices.
+  See `#28 <https://github.com/uos/sick_tim/issues/28>`_.
+* Contributors: Martin Günther, sacuar
+
 0.0.5 (2015-05-06)
 ------------------
 * Auto retry USB and TCP connections due to any reason; see `#25 <https://github.com/uos/sick_tim/issues/25>`_
