@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.6 (2015-11-13)
+------------------
 * First release into Jade
 * Create sick_tim571_2050001.launch
   This launch file can be used directly to connect to TIM571 devices.
