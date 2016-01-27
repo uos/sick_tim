@@ -244,28 +244,33 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     msg.ranges[j - index_min] = range / 1000.0;
   }
 
-  if (rssi)
-  {
-    // 26 + n: RSSI data included
-
-    //   26 + n + 1 = RSSI Measured Data Contents (RSSI1)
-    //   26 + n + 2 = RSSI scaling factor (3F80000)
-    //   26 + n + 3 = RSSI Scaling offset (0000000)
-    //   26 + n + 4 = RSSI starting angle (equal to Range starting angle)
-    //   26 + n + 5 = RSSI angular step width (equal to Range angular step width)
-    //   26 + n + 6 = RSSI number of data (equal to Range number of data)
-    //   26 + n + 7 .. 26 + n + 7 + n - 1: RSSI_Data_1 .. RSSI_Data_n
-    //   26 + n + 7 + n .. 26 + n + 7 + n + 2 = unknown (but seems to be [0, 1, B] always)
-    //   26 + n + 7 + n + 2 .. count - 4 = device label
-    //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
-    //   <ETX> (\x03)
-    msg.intensities.resize(index_max - index_min + 1);
-    size_t offset = 26 + number_of_data + 7;
-    for (int j = index_min; j <= index_max; ++j)
+  if (config.intensity) {
+    if (rssi)
     {
-      unsigned short intensity;
-      sscanf(fields[j + offset], "%hx", &intensity);
-      msg.intensities[j - index_min] = intensity;
+      // 26 + n: RSSI data included
+
+      //   26 + n + 1 = RSSI Measured Data Contents (RSSI1)
+      //   26 + n + 2 = RSSI scaling factor (3F80000)
+      //   26 + n + 3 = RSSI Scaling offset (0000000)
+      //   26 + n + 4 = RSSI starting angle (equal to Range starting angle)
+      //   26 + n + 5 = RSSI angular step width (equal to Range angular step width)
+      //   26 + n + 6 = RSSI number of data (equal to Range number of data)
+      //   26 + n + 7 .. 26 + n + 7 + n - 1: RSSI_Data_1 .. RSSI_Data_n
+      //   26 + n + 7 + n .. 26 + n + 7 + n + 2 = unknown (but seems to be [0, 1, B] always)
+      //   26 + n + 7 + n + 2 .. count - 4 = device label
+      //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
+      //   <ETX> (\x03)
+      msg.intensities.resize(index_max - index_min + 1);
+      size_t offset = 26 + number_of_data + 7;
+      for (int j = index_min; j <= index_max; ++j)
+      {
+        unsigned short intensity;
+        sscanf(fields[j + offset], "%hx", &intensity);
+        msg.intensities[j - index_min] = intensity;
+      }
+    } else {
+      ROS_WARN_ONCE("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
+       "Please read the section 'Enabling intensity (RSSI) output' here: http://wiki.ros.org/sick_tim.");
     }
   }
 
