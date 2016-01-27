@@ -4,7 +4,7 @@
   <version>0.0.6</version>
   <description>
     A ROS driver for the SICK TiM series of laser scanners.
-    Currently, the pacakge supports serveral types of TiM310, TiM551 and TiM571
+    Currently, the package supports serveral types of TiM310, TiM551 and TiM571
     scanners.
   </description>
 
@@ -13,6 +13,9 @@
   <author email="martin.guenther@dfki.de">Martin Günther</author>
 
   <license>BSD</license>
+
+  <url type="website">http://wiki.ros.org/sick_tim</url>
+  <url type="repository">https://github.com/uos/sick_tim</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
