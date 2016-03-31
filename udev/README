@@ -1,10 +1,13 @@
-To give all users write access to the Sick TiM 300 device, run the following
+To give all members of the plugdev group write access to the Sick TiM devices, run the following
 commands:
 
     sudo cp 81-sick-tim3xx.rules /etc/udev/rules.d/
     sudo udevadm control --reload-rules
 
-Now unplug your USB cable and plug it in again.  This will allow you to
+Make sure that your current user is a member of the plugdev group by running
+`groups`. If not, add the user to the group and login again.
+
+Now unplug your USB cable and plug it in again. This will allow you to
 communicate with the laser scanner without running the node as root and fix the
 following error:
 
