@@ -68,6 +68,9 @@ int main(int argc, char **argv)
       result = s->loopOnce();
     }
 
+    if (result == EXIT_FATAL)
+      return result;
+
     if (ros::ok() && !subscribe_datagram)
       ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
   }

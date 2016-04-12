@@ -38,6 +38,9 @@
 
 #include <sick_tim/sick_tim_common.h>
 
+#include <cstdio>
+#include <cstring>
+
 namespace sick_tim
 {
 
@@ -135,16 +138,21 @@ int SickTimCommon::init_scanner()
   identReply.push_back(0);  // add \0 to convert to string
   serialReply.push_back(0);
   std::string identStr;
-  for(std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++) {
-      if(*it > 13)  // filter control characters for display
-        identStr.push_back(*it);
+  for (std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++)
+  {
+    if (*it > 13) // filter control characters for display
+      identStr.push_back(*it);
   }
   std::string serialStr;
-  for(std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++) {
-      if(*it > 13)
-        serialStr.push_back(*it);
+  for (std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++)
+  {
+    if (*it > 13)
+      serialStr.push_back(*it);
   }
   diagnostics_.setHardwareID(identStr + " " + serialStr);
+
+  if (!isCompatibleDevice(identStr))
+    return EXIT_FATAL;
 
   /*
    * Read the SOPAS variable 'FirmwareVersion' by name.
@@ -170,6 +178,26 @@ int SickTimCommon::init_scanner()
   }
 
   return EXIT_SUCCESS;
+}
+
+bool sick_tim::SickTimCommon::isCompatibleDevice(const std::string identStr) const
+{
+  char device_string[7];
+  int version_major = -1;
+  int version_minor = -1;
+
+  if (sscanf(identStr.c_str(), "sRA 0 6 %6s E V%d.%d", device_string,
+             &version_major, &version_minor) == 3
+      && strncmp("TiM3", device_string, 4) == 0
+      && version_major >= 2 && version_minor >= 50)
+  {
+    ROS_ERROR("This scanner model/firmware combination does not support ranging output!");
+    ROS_ERROR("Supported scanners: TiM5xx: all firmware versions; TiM3xx: firmware versions < V2.50.");
+    ROS_ERROR("This is a %s, firmware version %d.%d", device_string, version_major, version_minor);
+
+    return false;
+  }
+  return true;
 }
 
 int SickTimCommon::loopOnce()
