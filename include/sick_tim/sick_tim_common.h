@@ -55,8 +55,6 @@
 #include <sick_tim/SickTimConfig.h>
 #include <sick_tim/abstract_parser.h>
 
-#define EXIT_FATAL  2
-
 namespace sick_tim
 {
 

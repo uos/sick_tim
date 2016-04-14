@@ -152,7 +152,7 @@ int SickTimCommon::init_scanner()
   diagnostics_.setHardwareID(identStr + " " + serialStr);
 
   if (!isCompatibleDevice(identStr))
-    return EXIT_FATAL;
+    return ExitFatal;
 
   /*
    * Read the SOPAS variable 'FirmwareVersion' by name.
@@ -174,10 +174,10 @@ int SickTimCommon::init_scanner()
   {
     ROS_ERROR("SOPAS - Error starting to stream 'LMDscandata'.");
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error starting to stream 'LMDscandata'.");
-    return EXIT_FAILURE;
+    return ExitError;
   }
 
-  return EXIT_SUCCESS;
+  return ExitSuccess;
 }
 
 bool sick_tim::SickTimCommon::isCompatibleDevice(const std::string identStr) const
@@ -213,14 +213,14 @@ int SickTimCommon::loopOnce()
   {
       ROS_ERROR("Read Error when getting datagram: %i.", result);
       diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Read Error when getting datagram.");
-      return EXIT_FAILURE; // return failure to exit node
+      return ExitError; // return failure to exit node
   }
   if(actual_length <= 0)
-      return EXIT_SUCCESS; // return success to continue looping
+      return ExitSuccess; // return success to continue looping
 
   // ----- if requested, skip frames
   if (iteration_count++ % (config_.skip + 1) != 0)
-    return EXIT_SUCCESS;
+    return ExitSuccess;
 
   if (publish_datagram_)
   {
@@ -242,12 +242,12 @@ int SickTimCommon::loopOnce()
     *dend = '\0';
     dstart++;
     int success = parser_->parse_datagram(dstart, dlength, config_, msg);
-    if (success == EXIT_SUCCESS)
+    if (success == ExitSuccess)
       diagnosticPub_->publish(msg);
     buffer_pos = dend + 1;
   }
 
-  return EXIT_SUCCESS; // return success to continue looping
+  return ExitSuccess; // return success to continue looping
 }
 
 void SickTimCommon::check_angle_range(SickTimConfig &conf)
