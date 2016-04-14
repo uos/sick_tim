@@ -59,7 +59,7 @@ int SickTimCommonMockup::close_device()
 int SickTimCommonMockup::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
   ROS_ERROR("Mockup - sendSOPASCommand(), this should never be called");
-  return EXIT_FAILURE;
+  return ExitError;
 }
 
 /*
@@ -68,7 +68,7 @@ int SickTimCommonMockup::sendSOPASCommand(const char* request, std::vector<unsig
 int SickTimCommonMockup::init_device()
 {
   ROS_INFO("Mockup - init_device()");
-  return EXIT_SUCCESS;
+  return ExitSuccess;
 }
 
 /*
@@ -77,7 +77,7 @@ int SickTimCommonMockup::init_device()
 int SickTimCommonMockup::init_scanner()
 {
   ROS_INFO("Mockup - init_scanner()");
-  return EXIT_SUCCESS;
+  return ExitSuccess;
 }
 
 int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
@@ -88,7 +88,7 @@ int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSi
   while(!datagram_msg_)
   {
     if (!ros::ok())
-      return EXIT_FAILURE;
+      return ExitError;
 
     ros::Duration(0.01).sleep();
     ros::spinOnce();
@@ -103,12 +103,12 @@ int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSi
   if (bufferSize < *actual_length + 1)
   {
     ROS_ERROR("Mockup - Buffer too small!");
-    return EXIT_FAILURE;
+    return ExitError;
   }
 
   strncpy(reinterpret_cast<char *>(receiveBuffer), &str[0], *actual_length + 1);
 
-  return EXIT_SUCCESS;
+  return ExitSuccess;
 }
 
 void SickTimCommonMockup::datagramCB(const std_msgs::String::ConstPtr &msg)

@@ -38,6 +38,9 @@
 
 #include <sick_tim/sick_tim_common.h>
 
+#include <cstdio>
+#include <cstring>
+
 namespace sick_tim
 {
 
@@ -135,16 +138,21 @@ int SickTimCommon::init_scanner()
   identReply.push_back(0);  // add \0 to convert to string
   serialReply.push_back(0);
   std::string identStr;
-  for(std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++) {
-      if(*it > 13)  // filter control characters for display
-        identStr.push_back(*it);
+  for (std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++)
+  {
+    if (*it > 13) // filter control characters for display
+      identStr.push_back(*it);
   }
   std::string serialStr;
-  for(std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++) {
-      if(*it > 13)
-        serialStr.push_back(*it);
+  for (std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++)
+  {
+    if (*it > 13)
+      serialStr.push_back(*it);
   }
   diagnostics_.setHardwareID(identStr + " " + serialStr);
+
+  if (!isCompatibleDevice(identStr))
+    return ExitFatal;
 
   /*
    * Read the SOPAS variable 'FirmwareVersion' by name.
@@ -166,10 +174,30 @@ int SickTimCommon::init_scanner()
   {
     ROS_ERROR("SOPAS - Error starting to stream 'LMDscandata'.");
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error starting to stream 'LMDscandata'.");
-    return EXIT_FAILURE;
+    return ExitError;
   }
 
-  return EXIT_SUCCESS;
+  return ExitSuccess;
+}
+
+bool sick_tim::SickTimCommon::isCompatibleDevice(const std::string identStr) const
+{
+  char device_string[7];
+  int version_major = -1;
+  int version_minor = -1;
+
+  if (sscanf(identStr.c_str(), "sRA 0 6 %6s E V%d.%d", device_string,
+             &version_major, &version_minor) == 3
+      && strncmp("TiM3", device_string, 4) == 0
+      && version_major >= 2 && version_minor >= 50)
+  {
+    ROS_ERROR("This scanner model/firmware combination does not support ranging output!");
+    ROS_ERROR("Supported scanners: TiM5xx: all firmware versions; TiM3xx: firmware versions < V2.50.");
+    ROS_ERROR("This is a %s, firmware version %d.%d", device_string, version_major, version_minor);
+
+    return false;
+  }
+  return true;
 }
 
 int SickTimCommon::loopOnce()
@@ -185,14 +213,14 @@ int SickTimCommon::loopOnce()
   {
       ROS_ERROR("Read Error when getting datagram: %i.", result);
       diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Read Error when getting datagram.");
-      return EXIT_FAILURE; // return failure to exit node
+      return ExitError; // return failure to exit node
   }
   if(actual_length <= 0)
-      return EXIT_SUCCESS; // return success to continue looping
+      return ExitSuccess; // return success to continue looping
 
   // ----- if requested, skip frames
   if (iteration_count++ % (config_.skip + 1) != 0)
-    return EXIT_SUCCESS;
+    return ExitSuccess;
 
   if (publish_datagram_)
   {
@@ -214,12 +242,12 @@ int SickTimCommon::loopOnce()
     *dend = '\0';
     dstart++;
     int success = parser_->parse_datagram(dstart, dlength, config_, msg);
-    if (success == EXIT_SUCCESS)
+    if (success == ExitSuccess)
       diagnosticPub_->publish(msg);
     buffer_pos = dend + 1;
   }
 
-  return EXIT_SUCCESS; // return success to continue looping
+  return ExitSuccess; // return success to continue looping
 }
 
 void SickTimCommon::check_angle_range(SickTimConfig &conf)

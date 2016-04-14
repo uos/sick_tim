@@ -43,7 +43,7 @@
 
 #include <std_msgs/String.h>
 
-#include <sick_tim/sick_tim_common.h>
+#include "sick_tim_common.h"
 
 namespace sick_tim
 {

@@ -53,7 +53,8 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <sick_tim/SickTimConfig.h>
-#include <sick_tim/abstract_parser.h>
+
+#include "abstract_parser.h"
 
 namespace sick_tim
 {
@@ -90,6 +91,8 @@ protected:
    * \param [out] actual_length the actual amount of data written
    */
   virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length) = 0;
+
+  bool isCompatibleDevice(const std::string identStr) const;
 
 protected:
   diagnostic_updater::Updater diagnostics_;

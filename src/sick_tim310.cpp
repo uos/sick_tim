@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 
   sick_tim::SickTimCommon* s = NULL;
 
-  int result = EXIT_FAILURE;
+  int result = sick_tim::ExitError;
   while (ros::ok())
   {
     // Atempt to connect/reconnect
@@ -63,10 +63,13 @@ int main(int argc, char **argv)
       s = new sick_tim::SickTimCommonUsb(parser);
     result = s->init();
 
-    while(ros::ok() && (result == EXIT_SUCCESS)){
+    while(ros::ok() && (result == sick_tim::ExitSuccess)){
       ros::spinOnce();
       result = s->loopOnce();
     }
+
+    if (result == sick_tim::ExitFatal)
+      return result;
 
     if (ros::ok() && !subscribe_datagram)
       ros::Duration(1.0).sleep(); // Only attempt USB connections once per second

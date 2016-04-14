@@ -64,7 +64,7 @@ void SickTimDatagramTest::datagramCB(const std_msgs::String::ConstPtr &datagram_
   str.push_back('\0');
 
   int success = parser_->parse_datagram(&str[0], datagram_msg->data.length(), config_, scan_msg);
-  if (success == EXIT_SUCCESS)
+  if (success == ExitSuccess)
     pub_.publish(scan_msg);
   else
     ROS_ERROR("parse_datagram returned %d!", success);

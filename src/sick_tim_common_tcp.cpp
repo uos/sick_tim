@@ -82,7 +82,7 @@ int SickTimCommonTcp::init_device()
     {
         ROS_FATAL("Could not resolve host: ... (%d)(%s)", e.code().value(), e.code().message().c_str());
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Could not resolve host.");
-        return EXIT_FAILURE;
+        return ExitError;
     }
 
     // Try to connect to all possible endpoints
@@ -118,12 +118,12 @@ int SickTimCommonTcp::init_device()
     {
         ROS_FATAL("Could not connect to host %s:%s", hostname_.c_str(), port_.c_str());
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Could not connect to host.");
-        return EXIT_FAILURE;
+        return ExitError;
     }
 
     input_buffer_.consume(input_buffer_.size());
 
-    return EXIT_SUCCESS;
+    return ExitSuccess;
 }
 
 int SickTimCommonTcp::close_device()
@@ -191,7 +191,7 @@ int SickTimCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffe
         }
 
         // For would_block, just return and indicate nothing bad happend
-        return EXIT_FAILURE;
+        return ExitError;
     }
     
     // Avoid a buffer overflow by limiting the data we read
@@ -218,7 +218,7 @@ int SickTimCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffe
     if (bytes_read != 0)
         *bytes_read = to_read;
 
-    return EXIT_SUCCESS;
+    return ExitSuccess;
 }
 
 /**
@@ -229,7 +229,7 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
     if (!socket_.is_open()) {
         ROS_ERROR("sendSOPASCommand: socket not open");
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: socket not open.");
-        return EXIT_FAILURE;
+        return ExitError;
     }
 
     /*
@@ -243,18 +243,18 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
     {
         ROS_ERROR("write error for command: %s", request);
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Write error for sendSOPASCommand.");
-        return EXIT_FAILURE;
+        return ExitError;
     }
 
     // Set timeout in 5 seconds
     const int BUF_SIZE = 1000;
     char buffer[BUF_SIZE];
     int bytes_read;
-    if (readWithTimeout(1000, buffer, BUF_SIZE, &bytes_read, 0) == EXIT_FAILURE)
+    if (readWithTimeout(1000, buffer, BUF_SIZE, &bytes_read, 0) == ExitError)
     {
         ROS_ERROR_THROTTLE(1.0, "sendSOPASCommand: no full reply available for read after 1s");
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: no full reply available for read after 5 s.");
-        return EXIT_FAILURE;
+        return ExitError;
     }
 
     if (reply)
@@ -263,7 +263,7 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
         std::copy(buffer, buffer + bytes_read, &(*reply)[0]);
     }
 
-    return EXIT_SUCCESS;
+    return ExitSuccess;
 }
 
 int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
@@ -271,7 +271,7 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
     if (!socket_.is_open()) {
         ROS_ERROR("get_datagram: socket not open");
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: socket not open.");
-        return EXIT_FAILURE;
+        return ExitError;
     }
 
     /*
@@ -285,7 +285,7 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
 
     char *buffer = reinterpret_cast<char *>(receiveBuffer);
 
-    if (readWithTimeout(timeout, buffer, bufferSize, actual_length, &exception_occured) != EXIT_SUCCESS)
+    if (readWithTimeout(timeout, buffer, bufferSize, actual_length, &exception_occured) != ExitSuccess)
     {
         ROS_ERROR_THROTTLE(1.0, "get_datagram: no data available for read after %zu ms", timeout);
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: no data available for read after timeout.");
@@ -298,10 +298,10 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
             return init();
         }
 
-        return exception_occured ? EXIT_FAILURE : EXIT_SUCCESS;    // keep on trying
+        return exception_occured ? ExitError : ExitSuccess;    // keep on trying
     }
 
-    return EXIT_SUCCESS;
+    return ExitSuccess;
 }
 
 } /* namespace sick_tim */

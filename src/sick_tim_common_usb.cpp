@@ -265,7 +265,7 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
   if (device_handle_ == NULL) {
     ROS_ERROR("LIBUSB - device not open");
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - device not open.");
-    return EXIT_FAILURE;
+    return ExitError;
   }
 
   int result = 0;
@@ -323,7 +323,7 @@ int SickTimCommonUsb::init_device()
   {
     ROS_ERROR("LIBUSB - Initialization failed with the following error code: %i.", result);
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Initialization failed.");
-    return EXIT_FAILURE;
+    return ExitError;
   }
 
   /*
@@ -348,7 +348,7 @@ int SickTimCommonUsb::init_device()
   {
     ROS_ERROR("No SICK TiM devices connected!");
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "No SICK TiM devices connected!");
-    return EXIT_FAILURE;
+    return ExitError;
   }
   else if (numberOfDevices_ > 1)
   {
@@ -369,7 +369,7 @@ int SickTimCommonUsb::init_device()
   {
     ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim/udev/README");
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device; please read sick_tim/udev/README.");
-    return EXIT_FAILURE;
+    return ExitError;
   }
   else
   {
@@ -393,14 +393,14 @@ int SickTimCommonUsb::init_device()
   {
     ROS_ERROR("LIBUSB - Cannot claim interface");
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot claim interface.");
-    return EXIT_FAILURE;
+    return ExitError;
   }
   else
   {
     ROS_INFO("LIBUSB - Claimed interface");
   }
 
-  return EXIT_SUCCESS;
+  return ExitSuccess;
 }
 
 int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
@@ -414,7 +414,7 @@ int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize,
       ROS_WARN("LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
       diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
       *actual_length = 0;
-      return EXIT_SUCCESS; // return success with size 0 to continue looping
+      return ExitSuccess; // return success with size 0 to continue looping
     }
     else
     {
@@ -425,7 +425,7 @@ int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize,
   }
 
   receiveBuffer[*actual_length] = 0;
-  return EXIT_SUCCESS;
+  return ExitSuccess;
 }
 
 } /* namespace sick_tim */
