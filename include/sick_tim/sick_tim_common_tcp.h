@@ -38,9 +38,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <sick_tim/sick_tim_common.h>
 #include <boost/asio.hpp>
+
+#include "sick_tim_common.h"
 
 namespace sick_tim
 {

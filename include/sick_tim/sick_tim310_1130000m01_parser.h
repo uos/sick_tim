@@ -35,7 +35,7 @@
 #ifndef SICK_TIM310_1130000M01_PARSER_H_
 #define SICK_TIM310_1130000M01_PARSER_H_
 
-#include <sick_tim/abstract_parser.h>
+#include "abstract_parser.h"
 
 namespace sick_tim
 {

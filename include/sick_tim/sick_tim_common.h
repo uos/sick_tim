@@ -53,7 +53,8 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <sick_tim/SickTimConfig.h>
-#include <sick_tim/abstract_parser.h>
+
+#include "abstract_parser.h"
 
 namespace sick_tim
 {
