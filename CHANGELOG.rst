@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.7 (2016-04-15)
+------------------
 * Check for firmware versions without range output
   Closes `#36 <https://github.com/uos/sick_tim/issues/36>`_ .
 * Use intensity param in TiM 551/571 parser
