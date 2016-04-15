@@ -2,6 +2,16 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Check for firmware versions without range output
+  Closes `#36 <https://github.com/uos/sick_tim/issues/36>`_ .
+* Use intensity param in TiM 551/571 parser
+  Also print a warning when the intensity param is set, but RSSI is not
+  enabled on the scanner. See `#32 <https://github.com/uos/sick_tim/issues/32>`_.
+* Other minor changes
+* Contributors: Martin Günther
+
 0.0.6 (2015-11-13)
 ------------------
 * First release into Jade
