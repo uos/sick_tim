@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.8 (2016-04-25)
+------------------
 * First release into kinetic
 * Remove dependency on driver_base
   The driver_base package is end-of-life, and we only needed it because of
