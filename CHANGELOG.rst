@@ -2,6 +2,14 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* First release into kinetic
+* Remove dependency on driver_base
+  The driver_base package is end-of-life, and we only needed it because of
+  one enum.
+* Contributors: Martin Guenther
+
 0.0.7 (2016-04-15)
 ------------------
 * Check for firmware versions without range output
