@@ -6,8 +6,7 @@ find_package(catkin REQUIRED
       roscpp
       sensor_msgs
       diagnostic_updater
-      dynamic_reconfigure
-      driver_base)
+      dynamic_reconfigure)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libusb libusb-1.0)
