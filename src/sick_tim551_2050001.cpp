@@ -56,7 +56,9 @@ int main(int argc, char **argv)
   nhPriv.param("timelimit", timelimit, 5);
 
   bool subscribe_datagram;
+  int device_number;
   nhPriv.param("subscribe_datagram", subscribe_datagram, false);
+  nhPriv.param("device_number", device_number, 0);
 
   sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
 
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
     else if (useTCP)
       s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser);
     else
-      s = new sick_tim::SickTimCommonUsb(parser);
+      s = new sick_tim::SickTimCommonUsb(parser, device_number);
     result = s->init();
 
     while(ros::ok() && (result == sick_tim::ExitSuccess)){
