@@ -46,7 +46,9 @@ int main(int argc, char **argv)
   ros::NodeHandle nhPriv("~");
 
   bool subscribe_datagram;
+  int device_number;
   nhPriv.param("subscribe_datagram", subscribe_datagram, false);
+  nhPriv.param("device_number", device_number, 0);
 
   sick_tim::SickTim310S01Parser* parser = new sick_tim::SickTim310S01Parser();
 
@@ -60,7 +62,7 @@ int main(int argc, char **argv)
     if (subscribe_datagram)
       s = new sick_tim::SickTimCommonMockup(parser);
     else
-      s = new sick_tim::SickTimCommonUsb(parser);
+      s = new sick_tim::SickTimCommonUsb(parser, device_number);
     result = s->init();
 
     while(ros::ok() && (result == sick_tim::ExitSuccess)){

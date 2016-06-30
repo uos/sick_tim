@@ -41,8 +41,8 @@
 namespace sick_tim
 {
 
-SickTimCommonUsb::SickTimCommonUsb(AbstractParser* parser) : SickTimCommon(parser),
-    ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL)
+SickTimCommonUsb::SickTimCommonUsb(AbstractParser* parser, int device_number) : SickTimCommon(parser),
+    ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL), device_number_(device_number)
 {
 }
 
@@ -350,10 +350,11 @@ int SickTimCommonUsb::init_device()
     diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "No SICK TiM devices connected!");
     return ExitError;
   }
-  else if (numberOfDevices_ > 1)
+  else if (numberOfDevices_ <= device_number_)
   {
-    ROS_WARN("%zu TiM3xx scanners connected, using the first one", numberOfDevices_);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::WARN, "Multiple TiMxxx scanners connected, using the first one.");
+    ROS_ERROR("Device number %d too high, only %zu SICK TiM scanners connected", device_number_, numberOfDevices_);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Chosen SICK TiM scanner not connected");
+	return ExitError;
   }
 
   /*
@@ -364,7 +365,7 @@ int SickTimCommonUsb::init_device()
   /*
    * Open the device handle and detach all kernel drivers.
    */
-  libusb_open(devices_[0], &device_handle_);
+  libusb_open(devices_[device_number_], &device_handle_);
   if (device_handle_ == NULL)
   {
     ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim/udev/README");
