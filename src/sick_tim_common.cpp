@@ -66,7 +66,7 @@ SickTimCommon::SickTimCommon(AbstractParser* parser) :
           // frequency should be target +- 10%.
           diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.1, 10),
           // timestamp delta can be from 0.0 to 1.3x what it ideally is.
-          diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_));
+          diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_ - config_.time_offset));
   ROS_ASSERT(diagnosticPub_ != NULL);
 }
 
