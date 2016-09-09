@@ -2,6 +2,12 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* timestamp diagnostics must take into account time_offset (`#41 <https://github.com/uos/sick_tim/issues/41>`_)
+* Choose one of multiple connected scanners
+* Contributors: Christian Reinhard, procopiostein
+
 0.0.8 (2016-04-25)
 ------------------
 * First release into kinetic
