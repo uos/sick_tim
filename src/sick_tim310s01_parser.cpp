@@ -64,17 +64,14 @@ int SickTim310S01Parser::parse_datagram(char* datagram, size_t datagram_length, 
   // ----- tokenize
   count = 0;
   cur_field = strtok(datagram, " ");
-  fields[count] = cur_field;
-  // ROS_DEBUG("%zu: %s ", count, fields[count]);
 
   while (cur_field != NULL)
   {
-    count++;
-    cur_field = strtok(NULL, " ");
-    if (count <= NUM_FIELDS)
-      fields[count] = cur_field;
+    if (count < NUM_FIELDS)
+      fields[count++] = cur_field;
 
     // ROS_DEBUG("%zu: %s ", count, cur_field);
+    cur_field = strtok(NULL, " ");
   }
 
   if (count < NUM_FIELDS)
