@@ -70,12 +70,11 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // ----- tokenize
   count = 0;
   cur_field = strtok(datagram, " ");
-  fields.push_back(cur_field);
 
   while (cur_field != NULL)
   {
-    cur_field = strtok(NULL, " ");
     fields.push_back(cur_field);
+    cur_field = strtok(NULL, " ");
   }
 
   count = fields.size();
