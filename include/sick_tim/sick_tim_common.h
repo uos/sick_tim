@@ -41,6 +41,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <string.h>
 #include <vector>
 
@@ -71,6 +72,12 @@ public:
 
   double get_expected_frequency() const { return expectedFrequency_; }
 
+  /// Send a SOPAS command to the scanner that should cause a soft reset
+  /**
+   * \returns true if reboot command was accepted, false otherwise
+   */
+  virtual bool rebootScanner();
+
 protected:
   virtual int init_device() = 0;
   virtual int init_scanner();
@@ -91,6 +98,13 @@ protected:
    * \param [out] actual_length the actual amount of data written
    */
   virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length) = 0;
+
+  /// Converts reply from sendSOPASCommand to string
+  /**
+   * \param [in] reply reply from sendSOPASCommand
+   * \returns reply as string with special characters stripped out
+   */
+  static std::string replyToString(const std::vector<unsigned char> &reply);
 
   bool isCompatibleDevice(const std::string identStr) const;
 
