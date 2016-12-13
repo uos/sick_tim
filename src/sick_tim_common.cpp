@@ -86,6 +86,54 @@ int SickTimCommon::stop_scanner()
   return result;
 }
 
+bool SickTimCommon::rebootScanner()
+{
+  /*
+   * Set Maintenance access mode to allow reboot to be sent
+   */
+  std::vector<unsigned char> access_reply;
+  int result = sendSOPASCommand("\x02sMN SetAccessMode 03 F4724744\x03\0", &access_reply);
+  if (result != 0)
+  {
+    ROS_ERROR("SOPAS - Error setting access mode");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
+    return false;
+  }
+  std::string access_reply_str = replyToString(access_reply);
+  if (access_reply_str != "sAN SetAccessMode 1")
+  {
+    ROS_ERROR_STREAM("SOPAS - Error setting access mode, unexpected response : " << access_reply_str);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
+    return false;
+  }
+
+  /*
+   * Send reboot command
+   */
+  std::vector<unsigned char> reboot_reply;
+  result = sendSOPASCommand("\x02sMN mSCreboot\x03\0", &reboot_reply);
+  if (result != 0)
+  {
+    ROS_ERROR("SOPAS - Error rebooting scanner");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error rebooting device.");
+    return false;
+  }
+  std::string reboot_reply_str = replyToString(reboot_reply);
+  if (reboot_reply_str != "sAN mSCreboot")
+  {
+    ROS_ERROR_STREAM("SOPAS - Error rebooting scanner, unexpected response : " << reboot_reply_str);
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
+    return false;
+  }
+
+  ROS_INFO("SOPAS - Rebooted scanner");
+
+  // Wait a few seconds after rebooting
+  ros::Duration(15.0).sleep();
+
+  return true;
+}
+
 SickTimCommon::~SickTimCommon()
 {
   delete diagnosticPub_;
@@ -135,20 +183,8 @@ int SickTimCommon::init_scanner()
   }
 
   // set hardware ID based on DeviceIdent and SerialNumber
-  identReply.push_back(0);  // add \0 to convert to string
-  serialReply.push_back(0);
-  std::string identStr;
-  for (std::vector<unsigned char>::iterator it = identReply.begin(); it != identReply.end(); it++)
-  {
-    if (*it > 13) // filter control characters for display
-      identStr.push_back(*it);
-  }
-  std::string serialStr;
-  for (std::vector<unsigned char>::iterator it = serialReply.begin(); it != serialReply.end(); it++)
-  {
-    if (*it > 13)
-      serialStr.push_back(*it);
-  }
+  std::string identStr = replyToString(identReply);
+  std::string serialStr = replyToString(serialReply);
   diagnostics_.setHardwareID(identStr + " " + serialStr);
 
   if (!isCompatibleDevice(identStr))
@@ -166,6 +202,44 @@ int SickTimCommon::init_scanner()
   }
 
   /*
+   * Read Device State
+   */
+  const char requestDeviceState[] = {"\x02sRN SCdevicestate\x03\0"};
+  std::vector<unsigned char> deviceStateReply;
+  result = sendSOPASCommand(requestDeviceState, &deviceStateReply);
+  if (result != 0)
+  {
+    ROS_ERROR("SOPAS - Error reading variable 'devicestate'.");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'devicestate'.");
+  }
+  std::string deviceStateReplyStr = replyToString(deviceStateReply);
+
+  /*
+   * Process device state, 0=Busy, 1=Ready, 2=Error
+   * If configuration parameter is set, try resetting device in error state
+   */
+  if (deviceStateReplyStr == "sRA SCdevicestate 0")
+  {
+    ROS_WARN("Laser is busy");
+  }
+  else if (deviceStateReplyStr == "sRA SCdevicestate 1")
+  {
+    ROS_DEBUG("Laser is ready");
+  }
+  else if (deviceStateReplyStr == "sRA SCdevicestate 2")
+  {
+    ROS_ERROR_STREAM("Laser reports error state : " << deviceStateReplyStr);
+    if (config_.auto_reboot)
+    {
+      rebootScanner();
+    }
+  }
+  else
+  {
+    ROS_WARN_STREAM("Laser reports unknown devicestate : " << deviceStateReplyStr);
+  }
+
+  /*
    * Start streaming 'LMDscandata'.
    */
   const char requestScanData[] = {"\x02sEN LMDscandata 1\x03\0"};
@@ -178,6 +252,19 @@ int SickTimCommon::init_scanner()
   }
 
   return ExitSuccess;
+}
+
+std::string sick_tim::SickTimCommon::replyToString(const std::vector<unsigned char> &reply)
+{
+  std::string reply_str;
+  for (std::vector<unsigned char>::const_iterator it = reply.begin(); it != reply.end(); it++)
+  {
+    if (*it > 13) // filter control characters for display
+    {
+      reply_str.push_back(*it);
+    }
+  }
+  return reply_str;
 }
 
 bool sick_tim::SickTimCommon::isCompatibleDevice(const std::string identStr) const
