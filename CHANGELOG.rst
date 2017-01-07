@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.10 (2017-01-07)
+-------------------
 * Automatically reboot scanner if it reports an error code. (`#44 <https://github.com/uos/sick_tim/issues/44>`_)
 * Update strtok logic. Fixes `#42 <https://github.com/uos/sick_tim/issues/42>`_ (`#43 <https://github.com/uos/sick_tim/issues/43>`_)
 * Contributors: Derek King, Jochen Sprickerhof, Martin Guenther
