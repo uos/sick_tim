@@ -4,8 +4,6 @@
   <version>0.0.9</version>
   <description>
     A ROS driver for the SICK TiM series of laser scanners.
-    Currently, the package supports serveral types of TiM310, TiM551 and TiM571
-    scanners.
   </description>
 
   <maintainer email="martin.guenther@dfki.de">Martin Günther</maintainer>
