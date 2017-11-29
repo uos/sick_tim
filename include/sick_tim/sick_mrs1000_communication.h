@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2013, Osnabrück University
+ * Copyright (C) 2017, Osnabrück University
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of Osnabrück University nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,39 +26,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 15.08.2013
- *
- *      Author: Martin Günther <mguenthe@uos.de>
+ *      Author:
+ *         Sebastian Pütz <spuetz@uos.de>
  *
  */
 
-#ifndef ABSTRACT_PARSER_H_
-#define ABSTRACT_PARSER_H_
+#ifndef SICK_MRS1000_COMMUNICATION_H
+#define SICK_MRS1000_COMMUNICATION_H
 
-#include <sick_tim/SickTimConfig.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <boost/asio.hpp>
+#include "sick_tim/scan_and_cloud_parser.h"
+#include "sick_tim_common_tcp.h"
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 namespace sick_tim
 {
 
-enum ExitCode
+class SickMrs1000Communication : public SickTimCommonTcp
 {
-    ExitSuccess = 0
-    , ExitError = 1    // non-fatal error, retry
-    , ExitFatal = 2    // fatal error, exit
+ public:
+  SickMrs1000Communication(const std::string &hostname,
+                           const std::string &port,
+                           int &timelimit,
+                           ScanAndCloudParser *parser);
+  virtual ~SickMrs1000Communication();
+  virtual int loopOnce();
+
+ protected:
+  ros::Publisher cloud_pub_;
+  virtual int init_scanner();
+  ScanAndCloudParser *scan_and_cloud_parser_;
 };
 
-class AbstractParser
-{
-public:
-  AbstractParser();
-  virtual ~AbstractParser();
+}
 
-  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &msg) = 0;
+/* namespace sick_tim */
+#endif /* SICK_MRS1000_COMMUNICATION_H */
 
-};
-
-} /* namespace sick_tim */
-#endif /* ABSTRACT_PARSER_H_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, Osnabrück University
+ * Copyright (C) 2017, Osnabrück University
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +26,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 15.08.2013
- *
- *      Author: Martin Günther <mguenthe@uos.de>
+ *      Author: Sebastian Pütz <spuetz@uos.de>
  *
  */
 
-#ifndef ABSTRACT_PARSER_H_
-#define ABSTRACT_PARSER_H_
+#ifndef SCAN_AND_CLOUD_PARSER_H_
+#define SCAN_AND_CLOUD_PARSER_H_
 
-#include <sick_tim/SickTimConfig.h>
-#include <sensor_msgs/LaserScan.h>
+#include "sick_tim/abstract_parser.h"
 #include <sensor_msgs/PointCloud2.h>
 
 namespace sick_tim
 {
 
-enum ExitCode
-{
-    ExitSuccess = 0
-    , ExitError = 1    // non-fatal error, retry
-    , ExitFatal = 2    // fatal error, exit
-};
 
-class AbstractParser
+class ScanAndCloudParser : public AbstractParser
 {
 public:
-  AbstractParser();
-  virtual ~AbstractParser();
+  ScanAndCloudParser();
+  virtual ~ScanAndCloudParser();
 
   virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &msg) = 0;
+                             sensor_msgs::LaserScan &scan, sensor_msgs::PointCloud2 &cloud) = 0;
+
+  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
+                             sensor_msgs::LaserScan &msg);
 
 };
 
 } /* namespace sick_tim */
-#endif /* ABSTRACT_PARSER_H_ */
+#endif /* SCAN_AND_CLOUD_PARSER_H_ */
