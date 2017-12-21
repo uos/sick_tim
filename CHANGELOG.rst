@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.11 (2017-12-21)
+-------------------
 * Make output REP-117 compliant (`#54 <https://github.com/uos/sick_tim/issues/54>`_)
   The laser scan topic now encodes invalid measurements as +inf instead of 0.
   This makes costmap2d treat all invalid measurements as out of range
