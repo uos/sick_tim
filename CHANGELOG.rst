@@ -2,6 +2,20 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make output REP-117 compliant (`#54 <https://github.com/uos/sick_tim/issues/54>`_)
+  The laser scan topic now encodes invalid measurements as +inf instead of 0.
+  This makes costmap2d treat all invalid measurements as out of range
+  measurements and correctly clearing obstacles even when there is no valid
+  measurement behind.  This can lead to some obstacles being incorrectly
+  cleared (when the "0" returne by the SICK TiM actually means "invalid
+  measurement" or "too close to measure" instead of "out of range"), but this
+  happens much less frequently in practice than the problem of non-cleared
+  obstacles.
+* .travis.yml: Add fix for `travis-ci/travis-ci#8048 <https://github.com/travis-ci/travis-ci/issues/8048>`_
+* Contributors: Martin Günther
+
 0.0.10 (2017-01-07)
 -------------------
 * Automatically reboot scanner if it reports an error code. (`#44 <https://github.com/uos/sick_tim/issues/44>`_)
