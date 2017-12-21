@@ -175,7 +175,10 @@ int SickTim3101130000M01Parser::parse_datagram(char* datagram, size_t datagram_l
   {
     unsigned short range;
     sscanf(fields[j + 27], "%hx", &range);
-    msg.ranges[j - index_min] = range / 1000.0;
+    if (range == 0)
+      msg.ranges[j - index_min] = std::numeric_limits<float>::infinity();
+    else
+      msg.ranges[j - index_min] = range / 1000.0;
   }
 
   // 297: Number of 8 bit channels (1)
