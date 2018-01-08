@@ -341,7 +341,7 @@ void SickTimCommon::check_angle_range(SickTimConfig &conf)
 {
   if (conf.min_ang > conf.max_ang)
   {
-    ROS_WARN("Minimum angle must be greater than maximum angle. Adjusting min_ang.");
+    ROS_WARN("Maximum angle must be greater than minimum angle. Adjusting min_ang.");
     conf.min_ang = conf.max_ang;
   }
 }
