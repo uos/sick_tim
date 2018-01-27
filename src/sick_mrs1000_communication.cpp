@@ -100,17 +100,30 @@ int SickMrs1000Communication::loopOnce()
     dstart++;
     sensor_msgs::PointCloud2 cloud;
     int success = scan_and_cloud_parser_->parse_datagram(dstart, dlength, config_, scan, cloud);
-    if(cloud.header.frame_id != ""){
-      ROS_DEBUG_STREAM("Publish cloud with " << cloud.height * cloud.width
-                                            << " points in the frame \"" << cloud.header.frame_id << "\".");
-      diagnosed_cloud_publisher_.publish(cloud);
-    }else{
-      ROS_DEBUG_STREAM("Not publishing...");
-    }
+
     if (success == ExitSuccess)
     {
+
+      /*
+       * cloud.header.frame_id == "" means we're still accumulating
+       * the layers of the point cloud, so don't publish yet.
+       */
+      if(cloud.header.frame_id != "")
+      {
+        ROS_DEBUG_STREAM("Publish cloud with " << cloud.height * cloud.width
+          << " points in the frame \"" << cloud.header.frame_id << "\".");
+        diagnosed_cloud_publisher_.publish(cloud);
+      }
+
+      /*
+       * scan.header.frame_id == "" means the laser scan was of a layer
+       * different than layer 0, so don't publish it (because the points
+       * don't lie in a plane)
+       */
       if(scan.header.frame_id == "laser")
+      {
         diagnosticPub_->publish(scan);
+      }
 
     }
     buffer_pos = dend + 1;
