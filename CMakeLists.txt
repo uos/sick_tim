@@ -3,10 +3,12 @@ project(sick_tim)
 
 find_package(catkin REQUIRED
     COMPONENTS
-      roscpp
-      sensor_msgs
       diagnostic_updater
-      dynamic_reconfigure)
+      dynamic_reconfigure
+      roscpp
+      roslaunch
+      sensor_msgs
+)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libusb libusb-1.0)
@@ -94,3 +96,5 @@ install(DIRECTORY meshes/
 
 install(DIRECTORY urdf/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf)
+
+roslaunch_add_file_check(launch)

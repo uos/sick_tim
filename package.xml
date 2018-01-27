@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>sick_tim</name>
-  <version>0.0.10</version>
+  <version>0.0.11</version>
   <description>
     A ROS driver for the SICK TiM series of laser scanners.
   </description>
@@ -17,15 +17,18 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>sensor_msgs</build_depend>
   <build_depend>diagnostic_updater</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>libusb-1.0-dev</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>roslaunch</build_depend>
+  <build_depend>sensor_msgs</build_depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>sensor_msgs</run_depend>
   <run_depend>diagnostic_updater</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>libusb-1.0</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>xacro</run_depend>
 </package>
