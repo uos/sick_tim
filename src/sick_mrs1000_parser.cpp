@@ -38,10 +38,10 @@ namespace sick_tim
 {
 
 SickMRS1000Parser::SickMRS1000Parser() :
-    ScanAndCloudParser(),
+    point_counter_(0),
     override_range_min_(0.2),
     override_range_max_(64.0),
-    override_time_increment_(-1.0),
+    override_time_increment_(-1.0f),
     modifier_(cloud_),
     x_iter((modifier_.setPointCloud2FieldsByString(1, "xyz"), sensor_msgs::PointCloud2Iterator<float>(cloud_, "x"))),
     y_iter(cloud_, "y"), z_iter(cloud_, "z"), layer_count_(0)
@@ -76,7 +76,6 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   datagram_copy[datagram_length] = 0;
 
   // ----- tokenize
-  count = 0;
   cur_field = strtok(datagram, " ");
 
   while (cur_field != NULL)
