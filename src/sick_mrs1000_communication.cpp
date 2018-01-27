@@ -49,6 +49,7 @@ SickMrs1000Communication::SickMrs1000Communication(const std::string &hostname,
     diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_ - config_.time_offset)
   )
 {
+  expectedFrequency_ = 50; // by data sheet 50.0 Hz -> 50 Hz, 4 x 12,5 Hz
 }
 
 SickMrs1000Communication::~SickMrs1000Communication()

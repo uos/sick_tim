@@ -39,15 +39,14 @@ namespace sick_tim
 
 SickMRS1000Parser::SickMRS1000Parser() :
     ScanAndCloudParser(),
-    override_range_min_(0.05),
-    override_range_max_(10.0),
+    override_range_min_(0.2),
+    override_range_max_(64.0),
     override_time_increment_(-1.0),
     modifier_(cloud_),
     x_iter((modifier_.setPointCloud2FieldsByString(1, "xyz"), sensor_msgs::PointCloud2Iterator<float>(cloud_, "x"))),
     y_iter(cloud_, "y"), z_iter(cloud_, "z"), layer_count_(0)
 
 {
-  modifier_.resize(275 * 4 * 4);
 }
 
 SickMRS1000Parser::~SickMRS1000Parser()
@@ -77,11 +76,8 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   while (cur_field != NULL)
   {
     fields.push_back(cur_field);
-    //std::cout << cur_field << std::endl;
     cur_field = strtok(NULL, " ");
   }
-
-  //std::cout << fields[27] << std::endl;
 
   count = fields.size();
 
@@ -96,15 +92,9 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     // ROS_DEBUG("received message was: %s", datagram_copy);
     return ExitError;
   }
-  if (false) //strcmp(fields[15], "0"))
-  {
-    // TODO: other layers are here on alternate values
-    ROS_WARN("Field 15 of received data is not equal to 0 (%s). Unexpected data, ignoring scan", fields[15]);
-    return ExitError;
-  }
   if (strcmp(fields[20], "DIST1"))
   {
-    ROS_WARN("Field 20 of received data is not equal to DIST1i (%s). Unexpected data, ignoring scan", fields[20]);
+    ROS_WARN("Field 20 of received data is not equal to DIST1 (%s). Unexpected data, ignoring scan", fields[20]);
     return ExitError;
   }
 
@@ -160,7 +150,8 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   sscanf(fields[15], "%hx", &layer);
   scan.header.seq = layer;
 
-  // Only set the frame id for the layer 0, because only the points of that layer 0 lie in a plain.
+  // Only set the frame id for the layer 0, because only the points of that layer 0 lie in a plane.
+  // If the frame_id is not set the caller will not and should not publish the scan.
   scan.header.frame_id = layer == 0 ? config.frame_id.c_str() : "";
 
   // ----- read fields into scan
