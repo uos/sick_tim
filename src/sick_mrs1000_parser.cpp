@@ -256,7 +256,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     modifier_.resize(point_counter_);
     cloud = cloud_;
     cloud.header.frame_id = "laser";
-    cloud.header.stamp = ros::Time::now();
+    cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
   }
 
   if (current_config_.intensity) {
