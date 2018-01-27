@@ -40,10 +40,16 @@ SickMrs1000Communication::SickMrs1000Communication(const std::string &hostname,
                                                    const std::string &port,
                                                    int &timelimit,
                                                    ScanAndCloudParser* parser)
-: SickTimCommonTcp(hostname, port, timelimit, parser), scan_and_cloud_parser_(parser)
+: SickTimCommonTcp(hostname, port, timelimit, parser),
+  scan_and_cloud_parser_(parser),
+  private_nh_("~"),
+  cloud_pub_(private_nh_.advertise<sensor_msgs::PointCloud2>("cloud", 300)),
+  diagnosed_cloud_publisher_(cloud_pub_, diagnostics_,
+    diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.1, 10),
+    diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_ - config_.time_offset)
+  )
 {
-  ros::NodeHandle private_nh("~");
-  cloud_pub_ = private_nh.advertise<sensor_msgs::PointCloud2>("cloud", 300);
+  expectedFrequency_ = 50; // by data sheet 50.0 Hz -> 50 Hz, 4 x 12,5 Hz
 }
 
 SickMrs1000Communication::~SickMrs1000Communication()
@@ -95,17 +101,30 @@ int SickMrs1000Communication::loopOnce()
     dstart++;
     sensor_msgs::PointCloud2 cloud;
     int success = scan_and_cloud_parser_->parse_datagram(dstart, dlength, config_, scan, cloud);
-    if(cloud.header.frame_id != ""){
-      ROS_DEBUG_STREAM("Publish cloud with " << cloud.height * cloud.width
-                                            << " points in the frame \"" << cloud.header.frame_id << "\".");
-      cloud_pub_.publish(cloud);
-    }else{
-      ROS_DEBUG_STREAM("Not publishing...");
-    }
+
     if (success == ExitSuccess)
     {
+
+      /*
+       * cloud.header.frame_id == "" means we're still accumulating
+       * the layers of the point cloud, so don't publish yet.
+       */
+      if(cloud.header.frame_id != "")
+      {
+        ROS_DEBUG_STREAM("Publish cloud with " << cloud.height * cloud.width
+          << " points in the frame \"" << cloud.header.frame_id << "\".");
+        diagnosed_cloud_publisher_.publish(cloud);
+      }
+
+      /*
+       * scan.header.frame_id == "" means the laser scan was of a layer
+       * different than layer 0, so don't publish it (because the points
+       * don't lie in a plane)
+       */
       if(scan.header.frame_id == "laser")
+      {
         diagnosticPub_->publish(scan);
+      }
 
     }
     buffer_pos = dend + 1;

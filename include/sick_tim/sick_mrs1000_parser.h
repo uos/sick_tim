@@ -61,7 +61,7 @@ class SickMRS1000Parser : public ScanAndCloudParser
  private:
   size_t point_counter_;
   int layer_count_;
-
+  sick_tim::SickTimConfig current_config_;
   float override_range_min_, override_range_max_;
   float override_time_increment_;
 };
