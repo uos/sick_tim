@@ -56,6 +56,12 @@ SickMRS1000Parser::~SickMRS1000Parser()
 int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
                                       sensor_msgs::LaserScan &scan, sensor_msgs::PointCloud2& cloud)
 {
+  // Only allow config changes for a whole new cloud / scan and not for partial fragments of a cloud.
+  if(layer_count_ == 0)
+  {
+    current_config_ = config;
+  }
+
   static const size_t HEADER_FIELDS = 32;
   char* cur_field;
   size_t count;
@@ -152,7 +158,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
 
   // Only set the frame id for the layer 0, because only the points of that layer 0 lie in a plane.
   // If the frame_id is not set the caller will not and should not publish the scan.
-  scan.header.frame_id = layer == 0 ? config.frame_id.c_str() : "";
+  scan.header.frame_id = layer == 0 ? current_config_.frame_id.c_str() : "";
 
   // ----- read fields into scan
   ROS_DEBUG_STREAM("publishing with frame_id " << scan.header.frame_id);
@@ -192,7 +198,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
 
   // adjust angle_min to min_ang config param
   int index_min = 0;
-  while (scan.angle_min + scan.angle_increment < config.min_ang)
+  while (scan.angle_min + scan.angle_increment < current_config_.min_ang)
   {
     scan.angle_min += scan.angle_increment;
     index_min++;
@@ -200,7 +206,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
 
   // adjust angle_max to max_ang config param
   int index_max = number_of_data - 1;
-  while (scan.angle_max - scan.angle_increment > config.max_ang)
+  while (scan.angle_max - scan.angle_increment > current_config_.max_ang)
   {
     scan.angle_max -= scan.angle_increment;
     index_max--;
@@ -227,15 +233,12 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   scan.ranges.resize(index_max - index_min + 1);
   for (int j = index_min; j <= index_max; ++j)
   {
-    if(point_counter_ >= modifier_.size()){
-      ROS_WARN_STREAM("Resized point buffer from " << modifier_.size() << " to " << modifier_.size() + 100);
-      modifier_.resize(modifier_.size() * 100);
-    }
     unsigned short range;
     sscanf(fields[j + 26], "%hx", &range);
     float range_meter = range / 1000.0;
     scan.ranges[j - index_min] = range_meter;
 
+    // Transform point from spherical coordinates to Cartesian coordinates.
     *x_iter = range_meter * sin(M_PI_2 - alpha) * cos(phi);
     *y_iter = range_meter * sin(M_PI_2 - alpha) * sin(phi);
     *z_iter = range_meter * cos(M_PI_2 - alpha);
@@ -256,7 +259,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     cloud.header.stamp = ros::Time::now();
   }
 
-  if (config.intensity) {
+  if (current_config_.intensity) {
     if (rssi)
     {
       // 26 + n: RSSI data included
@@ -304,7 +307,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   scan.header.stamp += ros::Duration().fromSec((double)index_min * scan.time_increment);
 
   // - add time offset (to account for USB latency etc.)
-  scan.header.stamp += ros::Duration().fromSec(config.time_offset);
+  scan.header.stamp += ros::Duration().fromSec(current_config_.time_offset);
 
   // ----- consistency check
   float expected_time_increment = scan.scan_time * scan.angle_increment / (2.0 * M_PI);
