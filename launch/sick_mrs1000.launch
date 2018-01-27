@@ -12,9 +12,9 @@
       <param name="publish_datagram" type="bool" value="False" />
       <param name="subscribe_datagram" type="bool" value="false" />
       <param name="device_number" type="int" value="0" />
-      <param name="range_min" type="double" value="0.05" />
+      <param name="range_min" type="double" value="0.2" />
+      <param name="range_max" type="double" value="64.0" />
     -->
-    <param name="range_max" type="double" value="25.0" />
 
     <!-- Older versions of the scanner firmware report an incorrect time_increment.
          If you get a warning about time_increment, uncomment this. -->
