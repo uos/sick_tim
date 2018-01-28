@@ -215,7 +215,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, scan.angle_increment, scan.angle_max);
 
   double phi = scan.angle_min;
-  double alpha = (-layer/ 100) * M_PI / 180;
+  double alpha = -layer * M_PI / 18000;
 
   // first layer
   // order of layers: 0, -250, 250, -500
