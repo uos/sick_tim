@@ -214,50 +214,68 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, scan.angle_increment, scan.angle_max);
 
   double phi = scan.angle_min;
+  // -250 -> 2.5 => x -> -x/100
+  // radiant(-x/100) -> (-x / 100) * (pi / 180) -> -x * pi / 18000
   double alpha = -layer * M_PI / 18000;
 
+  // order of layers: 2, 3, 1, 4
+  // layer 2: +0.0 degree, layer ==  0
+  // layer 3: +2.5 degree, layer == -250
+  // layer 1: -2.5 degree, layer ==  250
+  // layer 4: +5.0 degree, layer == -500
+
   // first layer
-  // order of layers: 0, -250, 250, -500
-  if(layer_count_ == 0){
+  if(layer == 0){
     modifier_.resize(4 * (index_max - index_min + 1));
     x_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "x");
     y_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "y");
     z_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "z");
-  }
-  layer_count_++;
-
-  // 26..26 + n - 1: Data_1 .. Data_n
-  scan.ranges.resize(index_max - index_min + 1);
-  for (int j = index_min; j <= index_max; ++j)
-  {
-    unsigned short range;
-    sscanf(fields[j + 26], "%hx", &range);
-    float range_meter = range / 1000.0;
-    scan.ranges[j - index_min] = range_meter;
-
-    /*
-     * Transform point from spherical coordinates to Cartesian coordinates.
-     * Alpha is measured from the xy-plane and not from the
-     * upper z axis ---> use "pi/2 - alpha" for transformation
-     * Simplified sin(pi/2 - alpha) to cos(alpha).
-     * Simplified cos(pi/2 - alpha) to sin(alpha).
-     */
-    *x_iter = range_meter * cos(alpha) * cos(phi);
-    *y_iter = range_meter * cos(alpha) * sin(phi);
-    *z_iter = range_meter * sin(alpha);
-
-    ++x_iter;
-    ++y_iter;
-    ++z_iter;
-
-    phi += scan.angle_increment;
+    // 26..26 + n - 1: Data_1 .. Data_n
+    scan.ranges.resize(index_max - index_min + 1);
   }
 
-  if(layer_count_ == 4){
-    layer_count_ = 0;
-    cloud = cloud_;
-    cloud.header.frame_id = "laser";
-    cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
+  // check for space, space was allocated if the layer was layer == 0 (Layer2) sometime before.
+  if(modifier_.size() > 0){
+    layer_count_++;
+    for (int j = index_min; j <= index_max; ++j)
+    {
+
+      unsigned short range;
+      sscanf(fields[j + 26], "%hx", &range);
+      float range_meter = range / 1000.0;
+
+      // only copy data to laser scan for layer 2 (layer == 0 degree)
+      if(layer == 0)
+      {
+        scan.ranges[j - index_min] = range_meter;
+      }
+
+      /*
+       * Transform point from spherical coordinates to Cartesian coordinates.
+       * Alpha is measured from the xy-plane and not from the
+       * upper z axis ---> use "pi/2 - alpha" for transformation
+       * Simplified sin(pi/2 - alpha) to cos(alpha).
+       * Simplified cos(pi/2 - alpha) to sin(alpha).
+       */
+      *x_iter = range_meter * cos(alpha) * cos(phi);
+      *y_iter = range_meter * cos(alpha) * sin(phi);
+      *z_iter = range_meter * sin(alpha);
+
+      ++x_iter;
+      ++y_iter;
+      ++z_iter;
+
+      phi += scan.angle_increment;
+    }
+
+    // last layer in the ordered list: 0, -250, 250, -500
+    if(layer == -500){
+      ROS_ASSERT_MSG(layer_count_ == 4, "Expected four layers and layer == -500 to be the last layer! Package loss in communication!");
+      layer_count_ = 0;
+      cloud = cloud_;
+      cloud.header.frame_id = "laser";
+      cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
+    }
   }
 
   if (current_config_.intensity) {
