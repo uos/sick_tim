@@ -57,9 +57,9 @@ class SickMrs1000Communication : public SickTimCommonTcp
 
  protected:
   ros::NodeHandle private_nh_;
+  ros::Publisher cloud_pub_;
   diagnostic_updater::DiagnosedPublisher<sensor_msgs::PointCloud2>
       diagnosed_cloud_publisher_;
-  ros::Publisher cloud_pub_;
   virtual int init_scanner();
   ScanAndCloudParser *scan_and_cloud_parser_;
 };
