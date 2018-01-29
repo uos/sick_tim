@@ -59,7 +59,6 @@ class SickMRS1000Parser : public ScanAndCloudParser
   sensor_msgs::PointCloud2Iterator<float> x_iter, y_iter, z_iter;
 
  private:
-  size_t point_counter_;
   int layer_count_;
   sick_tim::SickTimConfig current_config_;
   float override_range_min_, override_range_max_;

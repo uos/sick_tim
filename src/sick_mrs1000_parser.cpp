@@ -38,7 +38,6 @@ namespace sick_tim
 {
 
 SickMRS1000Parser::SickMRS1000Parser() :
-    point_counter_(0),
     override_range_min_(0.2),
     override_range_max_(64.0),
     override_time_increment_(-1.0f),
@@ -221,7 +220,6 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   // order of layers: 0, -250, 250, -500
   if(layer_count_ == 0){
     modifier_.resize(4 * (index_max - index_min + 1));
-    point_counter_ = 0;
     x_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "x");
     y_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "y");
     z_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "z");
@@ -247,12 +245,10 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     ++z_iter;
 
     phi += scan.angle_increment;
-    point_counter_++;
   }
 
   if(layer_count_ == 4){
     layer_count_ = 0;
-    modifier_.resize(point_counter_);
     cloud = cloud_;
     cloud.header.frame_id = "laser";
     cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
