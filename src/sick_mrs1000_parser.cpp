@@ -235,10 +235,16 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     float range_meter = range / 1000.0;
     scan.ranges[j - index_min] = range_meter;
 
-    // Transform point from spherical coordinates to Cartesian coordinates.
-    *x_iter = range_meter * sin(M_PI_2 - alpha) * cos(phi);
-    *y_iter = range_meter * sin(M_PI_2 - alpha) * sin(phi);
-    *z_iter = range_meter * cos(M_PI_2 - alpha);
+    /*
+     * Transform point from spherical coordinates to Cartesian coordinates.
+     * Alpha is measured from the xy-plane and not from the
+     * upper z axis ---> use "pi/2 - alpha" for transformation
+     * Simplified sin(pi/2 - alpha) to cos(alpha).
+     * Simplified cos(pi/2 - alpha) to sin(alpha).
+     */
+    *x_iter = range_meter * cos(alpha) * cos(phi);
+    *y_iter = range_meter * cos(alpha) * sin(phi);
+    *z_iter = range_meter * sin(alpha);
 
     ++x_iter;
     ++y_iter;
