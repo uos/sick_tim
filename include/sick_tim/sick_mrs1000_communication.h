@@ -56,7 +56,7 @@ class SickMrs1000Communication : public SickTimCommonTcp
   virtual int loopOnce();
 
  protected:
-  ros::NodeHandle private_nh_;
+  ros::NodeHandle nh_;
   ros::Publisher cloud_pub_;
   diagnostic_updater::DiagnosedPublisher<sensor_msgs::PointCloud2>
       diagnosed_cloud_publisher_;

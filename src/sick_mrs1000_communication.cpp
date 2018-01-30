@@ -42,8 +42,7 @@ SickMrs1000Communication::SickMrs1000Communication(const std::string &hostname,
                                                    ScanAndCloudParser* parser)
 : SickTimCommonTcp(hostname, port, timelimit, parser),
   scan_and_cloud_parser_(parser),
-  private_nh_("~"),
-  cloud_pub_(private_nh_.advertise<sensor_msgs::PointCloud2>("cloud", 300)),
+  cloud_pub_(nh_.advertise<sensor_msgs::PointCloud2>("cloud", 300)),
   diagnosed_cloud_publisher_(cloud_pub_, diagnostics_,
     diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.1, 10),
     diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_ - config_.time_offset)
