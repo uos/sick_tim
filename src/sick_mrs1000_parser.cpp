@@ -172,7 +172,8 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
   // 17: Measurement Frequency (36)
   unsigned short measurement_freq = -1;
   sscanf(fields[17], "%hx", &measurement_freq);
-  scan.time_increment = 1.0 / (measurement_freq * 100.0);
+  // Measurement Frequency = Inverse of the time between two measurement shots -> 275 * 4 / 20ms = 55kHz
+  scan.time_increment = 1.0 / (4 * measurement_freq * 100.0);
   if (override_time_increment_ > 0.0)
   {
     // Some lasers may report incorrect measurement frequency
