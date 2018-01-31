@@ -82,7 +82,6 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     // Atempt to connect/reconnect
-    delete s;
     if (subscribe_datagram)
       s = new sick_tim::SickTimCommonMockup(parser);
     else if (useTCP)
@@ -96,6 +95,8 @@ int main(int argc, char **argv)
       result = s->loopOnce();
     }
 
+    delete s;
+
     if (result == sick_tim::ExitFatal)
       return result;
 
@@ -103,7 +104,6 @@ int main(int argc, char **argv)
       ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
   }
 
-  delete s;
   delete parser;
   return result;
 }

@@ -75,7 +75,6 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     // Atempt to connect/reconnect
-    delete s;
     s = new sick_tim::SickMrs1000Communication(hostname, port, timelimit, parser);
     result = s->init();
 
@@ -84,11 +83,12 @@ int main(int argc, char **argv)
       result = s->loopOnce();
     }
 
+    delete s;
+
     if (result == sick_tim::ExitFatal)
       return result;
   }
 
-  delete s;
   delete parser;
   return result;
 }
