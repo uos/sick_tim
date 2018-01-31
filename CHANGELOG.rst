@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.12 (2018-01-31)
+-------------------
 * Fix memory leak (`#56 <https://github.com/uos/sick_tim/issues/56>`_)
   s should be deleted before returning.
 * mrs1000: Make output REP-117 compliant (invalid = +inf)
