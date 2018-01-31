@@ -2,6 +2,19 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix memory leak (`#56 <https://github.com/uos/sick_tim/issues/56>`_)
+  s should be deleted before returning.
+* mrs1000: Make output REP-117 compliant (invalid = +inf)
+  This is a port of e964fb4c to the MRS-1000.
+* sick mrs1000 driver (`#55 <https://github.com/uos/sick_tim/issues/55>`_)
+  This commit adds SICK MRS-1000 support. The initialization of the device
+  has to be different, due to that I have made the methods for initialization
+  virtual and now the mrs1000 driver runs different init code. Also the
+  support for PointCloud2 is new.
+* Contributors: Sebastian Pütz, Jochen Sprickerhof, Martin Günther
+
 0.0.11 (2017-12-21)
 -------------------
 * Make output REP-117 compliant (`#54 <https://github.com/uos/sick_tim/issues/54>`_)
