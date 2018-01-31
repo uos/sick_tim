@@ -250,7 +250,10 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
       // only copy data to laser scan for layer 2 (layer == 0 degree)
       if(layer == 0)
       {
-        scan.ranges[j - index_min] = range_meter;
+        if (range == 0)
+          scan.ranges[j - index_min] = std::numeric_limits<float>::infinity();
+        else
+          scan.ranges[j - index_min] = range_meter;
       }
 
       /*
