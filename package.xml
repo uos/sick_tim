@@ -3,12 +3,13 @@
   <name>sick_tim</name>
   <version>0.0.11</version>
   <description>
-    A ROS driver for the SICK TiM series of laser scanners.
+    A ROS driver for the SICK TiM and the SICK MRS 1000 laser scanners.
   </description>
 
   <maintainer email="martin.guenther@dfki.de">Martin Günther</maintainer>
   <author email="ros@jochen.sprickerhof.de">Jochen Sprickerhof</author>
   <author email="martin.guenther@dfki.de">Martin Günther</author>
+  <author email="spuetz@uos.de">Sebastian Pütz</author>
 
   <license>BSD</license>
 

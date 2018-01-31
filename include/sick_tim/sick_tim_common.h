@@ -66,7 +66,7 @@ public:
   SickTimCommon(AbstractParser* parser);
   virtual ~SickTimCommon();
   virtual int init();
-  int loopOnce();
+  virtual int loopOnce();
   void check_angle_range(SickTimConfig &conf);
   void update_config(sick_tim::SickTimConfig &new_config, uint32_t level = 0);
 
@@ -111,19 +111,21 @@ protected:
 protected:
   diagnostic_updater::Updater diagnostics_;
 
-private:
-  // ROS
-  ros::NodeHandle nh_;
-  ros::Publisher pub_;
-  ros::Publisher datagram_pub_;
+  // Dynamic Reconfigure
+  SickTimConfig config_;
   bool publish_datagram_;
+  ros::Publisher datagram_pub_;
 
   // Diagnostics
   diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>* diagnosticPub_;
   double expectedFrequency_;
 
-  // Dynamic Reconfigure
-  SickTimConfig config_;
+private:
+  // ROS
+  ros::NodeHandle nh_;
+  ros::Publisher pub_;
+
+
   dynamic_reconfigure::Server<sick_tim::SickTimConfig> dynamic_reconfigure_server_;
 
   // Parser
