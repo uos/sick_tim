@@ -233,6 +233,8 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     z_iter = sensor_msgs::PointCloud2Iterator<float>(cloud_, "z");
     // 26..26 + n - 1: Data_1 .. Data_n
     scan.ranges.resize(index_max - index_min + 1);
+    // set time when first row is received.
+    cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
   }
 
   // check for space, space was allocated if the layer was layer == 0 (Layer2) sometime before.
@@ -275,7 +277,6 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
       layer_count_ = 0;
       cloud = cloud_;
       cloud.header.frame_id = "laser";
-      cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
     }
   }
 
