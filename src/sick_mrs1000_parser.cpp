@@ -279,7 +279,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
       ROS_ASSERT_MSG(layer_count_ == 4, "Expected four layers and layer == -500 to be the last layer! Package loss in communication!");
       layer_count_ = 0;
       cloud = cloud_;
-      cloud.header.frame_id = "laser";
+      cloud.header.frame_id = current_config_.frame_id.c_str();
     }
   }
 
