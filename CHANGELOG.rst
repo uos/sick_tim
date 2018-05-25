@@ -2,6 +2,16 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* First release into melodic
+* Fix mrs1000 frame_id parameter (`#61 <https://github.com/uos/sick_tim/issues/61>`_)
+  If frame_id parameter was defined to something other than "laser", the node would not publish the /scan topic and the /cloud header.frame_id would always be "laser" even if a different one was defined. This fixes both issues.
+* Add min/max angle and range parameters to URDF macros (`#60 <https://github.com/uos/sick_tim/issues/60>`_)
+* catkin test-flag around `roslaunch_add_file_check` (`#59 <https://github.com/uos/sick_tim/issues/59>`_)
+  Eval `CATKIN_ENABLE_TESTING` prior to call `roslaunch_add_file_check` to ensure the function is defined.
+* Contributors: Jacob Perron, Jeremie Deray, Patrick Hussey
+
 0.0.12 (2018-01-31)
 -------------------
 * Fix memory leak (`#56 <https://github.com/uos/sick_tim/issues/56>`_)
