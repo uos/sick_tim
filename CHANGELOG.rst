@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.13 (2018-05-25)
+-------------------
 * First release into melodic
 * Fix mrs1000 frame_id parameter (`#61 <https://github.com/uos/sick_tim/issues/61>`_)
   If frame_id parameter was defined to something other than "laser", the node would not publish the /scan topic and the /cloud header.frame_id would always be "laser" even if a different one was defined. This fixes both issues.
