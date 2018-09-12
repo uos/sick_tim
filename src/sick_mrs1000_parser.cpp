@@ -234,7 +234,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     // 26..26 + n - 1: Data_1 .. Data_n
     scan.ranges.resize(index_max - index_min + 1);
     // set time when first row is received.
-    cloud.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
+    cloud_.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
   }
 
   // check for space, space was allocated if the layer was layer == 0 (Layer2) sometime before.
