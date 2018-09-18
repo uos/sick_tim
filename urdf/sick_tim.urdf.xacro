@@ -1,8 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
-  xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
-  xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
-  xmlns:xacro="http://ros.org/wiki/xacro">
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:macro name="sick_tim310" params="name ros_topic min_angle:=-2.357 max_angle:=2.357 min_range:=0.05 max_range:=4.0">
     <xacro:sick_tim name="${name}" ros_topic="${ros_topic}"
