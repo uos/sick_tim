@@ -110,7 +110,7 @@ int SickTimCommonTcp::init_device()
             ROS_INFO("Succesfully connected to %s", repr.c_str());
             break;
         }
-        ROS_ERROR("Failed to connect to %s", repr.c_str());
+        ROS_INFO("Failed to connect to %s", repr.c_str());
     }
 
     // Check if connecting succeeded
@@ -184,7 +184,7 @@ int SickTimCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffe
         // If any other error code is set, this means something bad happened.
         if (ec_ != boost::asio::error::would_block)
         {
-            ROS_ERROR("sendSOPASCommand: failed attempt to read from socket: %d: %s", ec_.value(), ec_.message().c_str());
+            ROS_INFO("sendSOPASCommand: failed attempt to read from socket: %d: %s", ec_.value(), ec_.message().c_str());
             diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: exception during read_until().");
             if (exception_occured != 0)
                 *exception_occured = true;
@@ -227,7 +227,7 @@ int SickTimCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffe
 int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
     if (!socket_.is_open()) {
-        ROS_ERROR("sendSOPASCommand: socket not open");
+        ROS_INFO("sendSOPASCommand: socket not open");
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "sendSOPASCommand: socket not open.");
         return ExitError;
     }
@@ -269,7 +269,7 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
 int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
 {
     if (!socket_.is_open()) {
-        ROS_ERROR("get_datagram: socket not open");
+        ROS_INFO("get_datagram: socket not open");
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: socket not open.");
         return ExitError;
     }
@@ -287,7 +287,7 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
 
     if (readWithTimeout(timeout, buffer, bufferSize, actual_length, &exception_occured) != ExitSuccess)
     {
-        ROS_ERROR_THROTTLE(1.0, "get_datagram: no data available for read after %zu ms", timeout);
+        ROS_INFO_THROTTLE(60.0, "get_datagram: no data available for read after %zu ms", timeout);
         diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "get_datagram: no data available for read after timeout.");
 
         // Attempt to reconnect when the connection was terminated
