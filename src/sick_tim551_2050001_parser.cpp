@@ -123,7 +123,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   }
   if (count < HEADER_FIELDS + number_of_data + 1 + MIN_FOOTER_FIELDS)
   {
-    ROS_WARN("Less fields than expected (expected: >= %d, actual: %zu). Ignoring scan",
+    ROS_WARN("Less fields than expected (expected: >= %zu, actual: %zu). Ignoring scan",
              HEADER_FIELDS + number_of_data + 1 + MIN_FOOTER_FIELDS, count);
     return ExitError;
   }
@@ -150,7 +150,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     // RSSI data size = number of RSSI readings + 6 fields describing the data
     if (count < HEADER_FIELDS + number_of_data + 1 + 6 + number_of_rssi_data + MIN_FOOTER_FIELDS)
     {
-      ROS_WARN("Less fields than expected with RSSI data (expected: >= %d, actual: %zu). Ignoring scan",
+      ROS_WARN("Less fields than expected with RSSI data (expected: >= %zu, actual: %zu). Ignoring scan",
                HEADER_FIELDS + number_of_data + 1 + 6 + number_of_rssi_data + MIN_FOOTER_FIELDS, count);
       return ExitError;
     }
