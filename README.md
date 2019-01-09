@@ -3,6 +3,33 @@ sick_tim
 
 For documentation, please see [sick_tim at the ROS wiki](http://wiki.ros.org/sick_tim).
 
+Setting up udev rules
+---------------------
+
+**Note:** The following steps are only required when installing the package
+from source. When installing a binary debian package of `sick_tim` >= 0.0.14,
+the udev rules are set up automatically. Also, this is only required if
+connecting to the scanner via USB.
+
+To give all members of the plugdev group write access to the Sick TiM devices, run the following
+commands from the root of the `sick_tim` repository:
+
+```bash
+sudo cp debian/udev /etc/udev/rules.d/81-sick-tim3xx.rules
+sudo udevadm control --reload-rules
+```
+
+Make sure that your current user is a member of the plugdev group by running
+`groups`. If not, add the user to the group and login again.
+
+Now unplug your USB cable and plug it in again. This will allow you to
+communicate with the laser scanner without running the node as root and fix the
+following error:
+
+```
+LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md
+```
+
 
 Travis - Continuous Integration
 -------------------------------

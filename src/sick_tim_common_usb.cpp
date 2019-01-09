@@ -368,8 +368,8 @@ int SickTimCommonUsb::init_device()
   libusb_open(devices_[device_number_], &device_handle_);
   if (device_handle_ == NULL)
   {
-    ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim/udev/README");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device; please read sick_tim/udev/README.");
+    ROS_ERROR("LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
     return ExitError;
   }
   else
