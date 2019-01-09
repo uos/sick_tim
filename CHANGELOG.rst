@@ -2,6 +2,15 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Install udev rules during binary package installation
+* TiM551/TiM571: Fix HEADER_FIELDS calculation when device name is not set
+  Fixes `#72 <https://github.com/uos/sick_tim/issues/72>`_.
+* sick_mrs1000: Fix missing cloud time stamp (`#69 <https://github.com/uos/sick_tim/issues/69>`_)
+  Fixes `#68 <https://github.com/uos/sick_tim/issues/68>`_.
+* Contributors: Martin Günther
+
 0.0.13 (2018-05-25)
 -------------------
 * First release into melodic
