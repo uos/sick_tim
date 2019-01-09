@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.14 (2019-01-09)
+-------------------
 * Install udev rules during binary package installation
 * TiM551/TiM571: Fix HEADER_FIELDS calculation when device name is not set
   Fixes `#72 <https://github.com/uos/sick_tim/issues/72>`_.
