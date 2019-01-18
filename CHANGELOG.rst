@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.13 (2019-01-18)
+-------------------
 * Merge branch 'fix-test-error' into 'dubnium-devel'
   Fix unprotected test
   See merge request ros-overlays/sick_tim!1
