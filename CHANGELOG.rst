@@ -2,6 +2,14 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'fix-test-error' into 'dubnium-devel'
+  Fix unprotected test
+  See merge request ros-overlays/sick_tim!1
+* Fix unprotected test
+* Contributors: Victor Lopez
+
 0.0.12 (2018-01-31)
 -------------------
 * Fix memory leak (`#56 <https://github.com/uos/sick_tim/issues/56>`_)
