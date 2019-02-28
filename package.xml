@@ -28,7 +28,7 @@
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
 
-  <exec_depend>libusb-1.0-dev</exec_depend>
+  <exec_depend>libusb-1.0</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>xacro</exec_depend>
 </package>
