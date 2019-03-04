@@ -2,6 +2,11 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add libusb-1.0-dev to build_export_depend (`#75 <https://github.com/uos/sick_tim/issues/75>`_)
+* Contributors: Alex Moriarty
+
 0.0.14 (2019-01-09)
 -------------------
 * Install udev rules during binary package installation
