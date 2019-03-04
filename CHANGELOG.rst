@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.15 (2019-03-04)
+-------------------
 * Add libusb-1.0-dev to build_export_depend (`#75 <https://github.com/uos/sick_tim/issues/75>`_)
 * Contributors: Alex Moriarty
 
