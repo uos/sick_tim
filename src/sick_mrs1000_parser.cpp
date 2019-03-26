@@ -234,7 +234,7 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
     // 26..26 + n - 1: Data_1 .. Data_n
     scan.ranges.resize(index_max - index_min + 1);
     // set time when first row is received.
-    cloud_.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);
+    cloud_.header.stamp = start_time + ros::Duration().fromSec(current_config_.time_offset);  // FIXME: will throw runtime error if use_sim_time = true
   }
 
   // check for space, space was allocated if the layer was layer == 0 (Layer2) sometime before.
@@ -325,13 +325,16 @@ int SickMRS1000Parser::parse_datagram(char* datagram, size_t datagram_length, Si
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
-  scan.header.stamp = start_time - ros::Duration().fromSec(number_of_data * scan.time_increment);
-
-  // - shift forward to time of first published scan point
-  scan.header.stamp += ros::Duration().fromSec((double)index_min * scan.time_increment);
-
-  // - add time offset (to account for USB latency etc.)
-  scan.header.stamp += ros::Duration().fromSec(current_config_.time_offset);
+  double start_time_adjusted = start_time.toSec()
+            - number_of_data * scan.time_increment  // shift backward to time of first scan point
+            + index_min * scan.time_increment       // shift forward to time of first published scan point
+            + current_config_.time_offset;          // add time offset (usually negative) to account for USB latency etc.
+  if (start_time_adjusted >= 0.0)   // ensure that ros::Time is not negative (otherwise runtime error)
+  {
+    scan.header.stamp.fromSec(start_time_adjusted);
+  } else {
+    ROS_WARN("ROS time is 0! Did you set the parameter use_sim_time to true?");
+  }
 
   // ----- consistency check
   float expected_time_increment = scan.scan_time * scan.angle_increment / (2.0 * M_PI);

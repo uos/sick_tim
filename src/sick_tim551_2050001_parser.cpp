@@ -301,13 +301,16 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
-  msg.header.stamp = start_time - ros::Duration().fromSec(number_of_data * msg.time_increment);
-
-  // - shift forward to time of first published scan point
-  msg.header.stamp += ros::Duration().fromSec((double)index_min * msg.time_increment);
-
-  // - add time offset (to account for USB latency etc.)
-  msg.header.stamp += ros::Duration().fromSec(config.time_offset);
+  double start_time_adjusted = start_time.toSec()
+            - number_of_data * msg.time_increment   // shift backward to time of first scan point
+            + index_min * msg.time_increment        // shift forward to time of first published scan point
+            + config.time_offset;                   // add time offset (usually negative) to account for USB latency etc.
+  if (start_time_adjusted >= 0.0)   // ensure that ros::Time is not negative (otherwise runtime error)
+  {
+    msg.header.stamp.fromSec(start_time_adjusted);
+  } else {
+    ROS_WARN("ROS time is 0! Did you set the parameter use_sim_time to true?");
+  }
 
   // ----- consistency check
  float expected_time_increment = msg.scan_time * msg.angle_increment / (2.0 * M_PI);
