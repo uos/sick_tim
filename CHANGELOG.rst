@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.16 (2019-05-06)
+-------------------
 * travis CI: Switch to Docker
 * Avoid runtime error if ROS time is 0
   See `#76 <https://github.com/uos/sick_tim/issues/76>`_
