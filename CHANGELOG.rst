@@ -2,6 +2,13 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* travis CI: Switch to Docker
+* Avoid runtime error if ROS time is 0
+  See `#76 <https://github.com/uos/sick_tim/issues/76>`_
+* Contributors: Martin Günther
+
 0.0.15 (2019-03-04)
 -------------------
 * Add libusb-1.0-dev to build_export_depend (`#75 <https://github.com/uos/sick_tim/issues/75>`_)
