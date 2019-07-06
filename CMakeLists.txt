@@ -97,6 +97,4 @@ install(DIRECTORY meshes/
 install(DIRECTORY urdf/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf)
 
-if(CATKIN_ENABLE_TESTING)
-  roslaunch_add_file_check(launch)
-endif(CATKIN_ENABLE_TESTING)
+roslaunch_add_file_check(launch)
