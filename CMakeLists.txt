@@ -23,7 +23,8 @@ catkin_package(
     LIBRARIES sick_tim_3xx
     INCLUDE_DIRS include)
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
+include_directories(include)
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
 
 add_library(sick_tim_3xx
     src/sick_tim_common.cpp
