@@ -329,7 +329,11 @@ int SickTimCommonUsb::init_device()
   /*
    * Set the verbosity level to 3 as suggested in the documentation.
    */
+#if LIBUSB_API_VERSION >= 0x01000106
+  libusb_set_option(ctx_, LIBUSB_OPTION_LOG_LEVEL, 3);
+#else
   libusb_set_debug(ctx_, 3);
+#endif
 
   /*
    * Get a list of all SICK TIM3xx devices connected to the USB bus.
