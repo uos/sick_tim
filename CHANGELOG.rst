@@ -2,6 +2,14 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Switch to non-deprecated node in launch files
+  The state_publisher node is deprecated in Kinetic and was removed in
+  Noetic.
+* Avoid compilation warning in libusb on noetic
+* Contributors: Martin Günther
+
 0.0.16 (2019-05-06)
 -------------------
 * travis CI: Switch to Docker
