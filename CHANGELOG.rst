@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.17 (2020-05-25)
+-------------------
 * Switch to non-deprecated node in launch files
   The state_publisher node is deprecated in Kinetic and was removed in
   Noetic.
