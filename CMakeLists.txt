@@ -36,52 +36,18 @@ target_link_libraries(sick_tim_3xx
     ${catkin_LIBRARIES}
     ${libusb_LIBRARIES})
 
-add_executable(sick_tim310s01
-    src/sick_tim310s01.cpp
-    src/sick_tim310s01_parser.cpp)
-target_link_libraries(sick_tim310s01 sick_tim_3xx)
-
-add_executable(sick_tim310
-    src/sick_tim310.cpp
-    src/sick_tim310_parser.cpp)
-target_link_libraries(sick_tim310 sick_tim_3xx)
-
-add_executable(sick_tim310_1130000m01
-    src/sick_tim310_1130000m01.cpp
-    src/sick_tim310_1130000m01_parser.cpp)
-target_link_libraries(sick_tim310_1130000m01 sick_tim_3xx)
-
 add_executable(sick_tim551_2050001
     src/sick_tim551_2050001.cpp
     src/sick_tim_common_tcp.cpp
     src/sick_tim551_2050001_parser.cpp)
 target_link_libraries(sick_tim551_2050001 sick_tim_3xx)
 
-add_executable(sick_mrs1000
-  src/sick_mrs1000.cpp
-  src/sick_mrs1000_communication.cpp
-  src/sick_tim_common_tcp.cpp
-  src/scan_and_cloud_parser.cpp
-  src/sick_mrs1000_parser.cpp)
-target_link_libraries(sick_mrs1000 sick_tim_3xx)
-
-add_executable(sick_tim_datagram_test
-    test/sick_tim_datagram_test.cpp
-    src/sick_tim310s01_parser.cpp
-    src/abstract_parser.cpp)
-target_link_libraries(sick_tim_datagram_test sick_tim_3xx)
-
 install(TARGETS sick_tim_3xx
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
 
 install(
     TARGETS
-        sick_tim310s01
-        sick_tim310
-        sick_tim310_1130000m01
         sick_tim551_2050001
-        sick_mrs1000
-        sick_tim_datagram_test
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(FILES include/${PROJECT_NAME}/abstract_parser.h
