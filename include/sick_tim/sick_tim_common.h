@@ -39,21 +39,25 @@
 #ifndef SICK_TIM3XX_COMMON_H_
 #define SICK_TIM3XX_COMMON_H_
 
+#include <cassert>
+#include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <string.h>
 #include <vector>
 
-#include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
-#include <std_msgs/String.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <example_interfaces/msg/string.hpp>
 
-#include <diagnostic_updater/diagnostic_updater.h>
-#include <diagnostic_updater/publisher.h>
+#include <diagnostic_updater/diagnostic_updater.hpp>
+#include <diagnostic_updater/update_functions.hpp>
+#include <diagnostic_updater/publisher.hpp>
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
 
-#include <dynamic_reconfigure/server.h>
-#include <sick_tim/SickTimConfig.h>
+// #include <dynamic_reconfigure/server.h>
+// #include <sick_tim/SickTimConfig.h>
 
 #include "abstract_parser.h"
 
@@ -63,12 +67,13 @@ namespace sick_tim
 class SickTimCommon
 {
 public:
-  SickTimCommon(AbstractParser* parser);
+  SickTimCommon(AbstractParser* parser, rclcpp::Node::SharedPtr node);
   virtual ~SickTimCommon();
   virtual int init();
   virtual int loopOnce();
-  void check_angle_range(SickTimConfig &conf);
-  void update_config(sick_tim::SickTimConfig &new_config, uint32_t level = 0);
+  SickTimConfig config_;
+  // void check_angle_range(SickTimConfig &conf);
+  // void update_config(sick_tim::SickTimConfig &new_config, uint32_t level = 0);
 
   double get_expected_frequency() const { return expectedFrequency_; }
 
@@ -111,22 +116,25 @@ protected:
 protected:
   diagnostic_updater::Updater diagnostics_;
 
-  // Dynamic Reconfigure
-  SickTimConfig config_;
   bool publish_datagram_;
-  ros::Publisher datagram_pub_;
+  rclcpp::Publisher<example_interfaces::msg::String>::SharedPtr datagram_pub_;
 
   // Diagnostics
-  diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>* diagnosticPub_;
+  diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::LaserScan>* diagnosticPub_;
   double expectedFrequency_;
+
+  // Node interface
+  rclcpp::Node::SharedPtr node_;
 
 private:
   // ROS
-  ros::NodeHandle nh_;
-  ros::Publisher pub_;
-
-
-  dynamic_reconfigure::Server<sick_tim::SickTimConfig> dynamic_reconfigure_server_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr pub_;
+  std::shared_ptr<rclcpp::SyncParametersClient> parameter_client_;
+  // Parameter Event subscription
+  std::shared_ptr<rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent,
+    std::allocator<void>>> parameter_subscription_;
+  void onParameterEvent(const rcl_interfaces::msg::ParameterEvent::SharedPtr event);
+  //dynamic_reconfigure::Server<sick_tim::SickTimConfig> dynamic_reconfigure_server_;
 
   // Parser
   AbstractParser* parser_;

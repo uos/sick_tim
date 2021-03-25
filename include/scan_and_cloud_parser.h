@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, Osnabrück University
+ * Copyright (C) 2017, Osnabrück University
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +26,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: 14.11.2013
- *
- *      Author: Martin Günther <mguenthe@uos.de>
+ *      Author: Sebastian Pütz <spuetz@uos.de>
  *
  */
 
-#ifndef SICK_TIM551_2050001_PARSER_H_
-#define SICK_TIM551_2050001_PARSER_H_
+#ifndef SCAN_AND_CLOUD_PARSER_H_
+#define SCAN_AND_CLOUD_PARSER_H_
 
-#include "abstract_parser.h"
-#include "sick_tim/sick_tim_common.h"
+#include "sick_tim/abstract_parser.h"
+#include <sensor_msgs/PointCloud2.h>
 
 namespace sick_tim
 {
 
-class SickTim5512050001Parser : public AbstractParser
+
+class ScanAndCloudParser : public AbstractParser
 {
 public:
-  SickTim5512050001Parser();
-  virtual ~SickTim5512050001Parser();
+  ScanAndCloudParser();
+  virtual ~ScanAndCloudParser();
 
   virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::msg::LaserScan &msg);
+                             sensor_msgs::LaserScan &scan, sensor_msgs::PointCloud2 &cloud) = 0;
 
-  void set_range_min(float min);
-  void set_range_max(float max);
-  void set_time_increment(float time);
+  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
+                             sensor_msgs::LaserScan &msg);
 
-private:
-  float override_range_min_, override_range_max_;
-  float override_time_increment_;
-  rclcpp::Clock clock_;
 };
 
 } /* namespace sick_tim */
-#endif /* SICK_TIM551_2050001_PARSER_H_ */
+#endif /* SCAN_AND_CLOUD_PARSER_H_ */
