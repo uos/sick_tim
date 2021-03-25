@@ -40,38 +40,39 @@
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "sick_tim551_2050001");
-  ros::NodeHandle nhPriv("~");
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("sick_driver");
 
   // check for TCP - use if ~hostname is set.
   bool useTCP = false;
   std::string hostname;
-  if(nhPriv.getParam("hostname", hostname)) {
+  if(node->get_parameter("hostname", hostname))
+  {
       useTCP = true;
   }
   std::string port;
-  nhPriv.param<std::string>("port", port, "2112");
+  port = node->declare_parameter("port", "2112");
 
   int timelimit;
-  nhPriv.param("timelimit", timelimit, 5);
+  timelimit = node->declare_parameter("timelimit", 5);
 
   bool subscribe_datagram;
   int device_number;
-  nhPriv.param("subscribe_datagram", subscribe_datagram, false);
-  nhPriv.param("device_number", device_number, 0);
+  timelimit = node->declare_parameter("subscribe_datagram", false);
+  device_number = node->declare_parameter("device_number", 0);
 
   sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
 
   double param;
-  if (nhPriv.getParam("range_min", param))
+  if (node->get_parameter("range_min", param))
   {
     parser->set_range_min(param);
   }
-  if (nhPriv.getParam("range_max", param))
+  if (node->get_parameter("range_max", param))
   {
     parser->set_range_max(param);
   }
-  if (nhPriv.getParam("time_increment", param))
+  if (node->get_parameter("time_increment", param))
   {
     parser->set_time_increment(param);
   }
@@ -79,19 +80,19 @@ int main(int argc, char **argv)
   sick_tim::SickTimCommon* s = NULL;
 
   int result = sick_tim::ExitError;
-  while (ros::ok())
+  while (rclcpp::ok())
   {
     // Atempt to connect/reconnect
     if (subscribe_datagram)
-      s = new sick_tim::SickTimCommonMockup(parser);
+      s = new sick_tim::SickTimCommonMockup(parser, node);
     else if (useTCP)
-      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser);
+      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser, node);
     else
-      s = new sick_tim::SickTimCommonUsb(parser, device_number);
+      s = new sick_tim::SickTimCommonUsb(parser, device_number, node);
     result = s->init();
 
-    while(ros::ok() && (result == sick_tim::ExitSuccess)){
-      ros::spinOnce();
+    while(rclcpp::ok() && (result == sick_tim::ExitSuccess)){
+      rclcpp::spin_some(node);
       result = s->loopOnce();
     }
 
@@ -100,8 +101,8 @@ int main(int argc, char **argv)
     if (result == sick_tim::ExitFatal)
       return result;
 
-    if (ros::ok() && !subscribe_datagram && !useTCP)
-      ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
+    if (rclcpp::ok() && !subscribe_datagram && !useTCP)
+      rclcpp::sleep_for(std::chrono::seconds(1)); // Only attempt USB connections once per second
   }
 
   delete parser;

@@ -35,8 +35,8 @@
 #ifndef ABSTRACT_PARSER_H_
 #define ABSTRACT_PARSER_H_
 
-#include <sick_tim/SickTimConfig.h>
-#include <sensor_msgs/LaserScan.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include "sick_tim/sick_tim_config.h"
 
 namespace sick_tim
 {
@@ -55,7 +55,7 @@ public:
   virtual ~AbstractParser();
 
   virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &msg) = 0;
+                             sensor_msgs::msg::LaserScan &msg) = 0;
 };
 
 } /* namespace sick_tim */

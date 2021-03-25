@@ -41,8 +41,6 @@
 #include <string.h>
 #include <libusb.h>
 
-#include <std_msgs/String.h>
-
 #include "sick_tim_common.h"
 
 namespace sick_tim
@@ -51,7 +49,7 @@ namespace sick_tim
 class SickTimCommonMockup : public SickTimCommon
 {
 public:
-  SickTimCommonMockup(AbstractParser* parser);
+  SickTimCommonMockup(AbstractParser* parser, rclcpp::Node::SharedPtr node);
   virtual ~SickTimCommonMockup();
 
 protected:
@@ -71,14 +69,12 @@ protected:
   virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length);
 
 private:
-  ros::NodeHandle nh_;
-
   // subscriber to "datagram" topic
-  ros::Subscriber sub_;
+  rclcpp::Subscription<example_interfaces::msg::String>::SharedPtr sub_;
 
-  std_msgs::String::ConstPtr datagram_msg_;
+  example_interfaces::msg::String::SharedPtr datagram_msg_;
 
-  void datagramCB(const std_msgs::String::ConstPtr &msg);
+  void datagramCB(const example_interfaces::msg::String::SharedPtr msg);
 };
 
 } /* namespace sick_tim */
