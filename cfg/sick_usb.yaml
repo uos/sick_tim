@@ -1,7 +1,7 @@
 sick_driver:
   ros__parameters:
     hostname: ""
-    port: 2112
+    port: "2112"
     time_limit: 5
     subscribe_datagram: false
     device_number: 0

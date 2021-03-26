@@ -59,13 +59,16 @@ install(FILES include/${PROJECT_NAME}/abstract_parser.h
     DESTINATION include/${PROJECT_NAME})
 
 install(DIRECTORY launch/
-    DESTINATION share/launch)
+    DESTINATION share/${PROJECT_NAME})
+
+install(DIRECTORY cfg/
+    DESTINATION share/${PROJECT_NAME}/cfg)
 
 install(DIRECTORY meshes/
-    DESTINATION share/meshes)
+    DESTINATION share/${PROJECT_NAME}/meshes)
 
 install(DIRECTORY urdf/
-    DESTINATION share/urdf)
+    DESTINATION share/${PROJECT_NAME}/urdf)
 
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
