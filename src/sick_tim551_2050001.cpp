@@ -42,11 +42,15 @@ int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("sick_driver");
+  rclcpp::executors::SingleThreadedExecutor exec;
+  rclcpp::NodeOptions options;
+  exec.add_node(node);
 
   // check for TCP - use if ~hostname is set.
   bool useTCP = false;
   std::string hostname;
-  if(node->get_parameter("hostname", hostname))
+  hostname = node->declare_parameter("hostname", "");
+  if(hostname != "")
   {
       useTCP = true;
   }
@@ -58,10 +62,23 @@ int main(int argc, char **argv)
 
   bool subscribe_datagram;
   int device_number;
-  timelimit = node->declare_parameter("subscribe_datagram", false);
+  subscribe_datagram = node->declare_parameter("subscribe_datagram", false);
   device_number = node->declare_parameter("device_number", 0);
+  // datagram publisher (only for debug)
+  node->declare_parameter("publish_datagram", false);
+  // Declare Sick Tim Parameters
+  node->declare_parameter("min_ang", -0.75 * M_PI);
+  node->declare_parameter("max_ang", 0.75 * M_PI);
+  node->declare_parameter("intensity", true);
+  node->declare_parameter("skip", 0);
+  node->declare_parameter("frame_id", "laser");
+  node->declare_parameter("time_offset", -0.001);
+  node->declare_parameter("auto_reboot", true);
 
   sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
+
+  diagnostic_updater::Updater* diagnostics = new diagnostic_updater::Updater(node, 15.0);
+  diagnostics->setHardwareID("none");   // set from device after connection
 
   double param;
   if (node->get_parameter("range_min", param))
@@ -77,25 +94,28 @@ int main(int argc, char **argv)
     parser->set_time_increment(param);
   }
 
-  sick_tim::SickTimCommon* s = NULL;
+  sick_tim::SickTimCommon* s = nullptr;
 
   int result = sick_tim::ExitError;
   while (rclcpp::ok())
   {
+    exec.spin_some();
+
     // Atempt to connect/reconnect
     if (subscribe_datagram)
-      s = new sick_tim::SickTimCommonMockup(parser, node);
-    else if (useTCP)
-      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser, node);
-    else
-      s = new sick_tim::SickTimCommonUsb(parser, device_number, node);
+    {
+      s = new sick_tim::SickTimCommonMockup(parser, node, diagnostics);
+    } else if (useTCP) {
+      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser, node, diagnostics);
+    } else {
+      s = new sick_tim::SickTimCommonUsb(parser, device_number, node, diagnostics);
+    }
     result = s->init();
-
+    
     while(rclcpp::ok() && (result == sick_tim::ExitSuccess)){
-      rclcpp::spin_some(node);
+      exec.spin_some();
       result = s->loopOnce();
     }
-
     delete s;
 
     if (result == sick_tim::ExitFatal)
@@ -106,5 +126,6 @@ int main(int argc, char **argv)
   }
 
   delete parser;
+  delete diagnostics;
   return result;
 }

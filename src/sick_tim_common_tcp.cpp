@@ -42,9 +42,9 @@
 namespace sick_tim
 {
 
-SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, AbstractParser* parser, rclcpp::Node::SharedPtr node)
+SickTimCommonTcp::SickTimCommonTcp(const std::string &hostname, const std::string &port, int &timelimit, AbstractParser* parser, rclcpp::Node::SharedPtr node,  diagnostic_updater::Updater * diagnostics)
 :
-    SickTimCommon(parser, node),
+    SickTimCommon(parser, node, diagnostics),
     socket_(io_service_),
     deadline_(io_service_),
     hostname_(hostname),
@@ -81,7 +81,7 @@ int SickTimCommonTcp::init_device()
     catch (boost::system::system_error &e)
     {
         RCLCPP_FATAL(node_->get_logger(), "Could not resolve host: ... (%d)(%s)", e.code().value(), e.code().message().c_str());
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Could not resolve host.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Could not resolve host.");
         return ExitError;
     }
 
@@ -117,7 +117,7 @@ int SickTimCommonTcp::init_device()
     if (!success)
     {
         RCLCPP_FATAL(node_->get_logger(), "Could not connect to host %s:%s", hostname_.c_str(), port_.c_str());
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Could not connect to host.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Could not connect to host.");
         return ExitError;
     }
 
@@ -185,7 +185,7 @@ int SickTimCommonTcp::readWithTimeout(size_t timeout_ms, char *buffer, int buffe
         if (ec_ != boost::asio::error::would_block)
         {
             RCLCPP_ERROR(node_->get_logger(), "sendSOPASCommand: failed attempt to read from socket: %d: %s", ec_.value(), ec_.message().c_str());
-            diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "sendSOPASCommand: exception during read_until().");
+            diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "sendSOPASCommand: exception during read_until().");
             if (exception_occured != 0)
                 *exception_occured = true;
         }
@@ -228,7 +228,7 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
 {
     if (!socket_.is_open()) {
         RCLCPP_ERROR(node_->get_logger(), "sendSOPASCommand: socket not open");
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "sendSOPASCommand: socket not open.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "sendSOPASCommand: socket not open.");
         return ExitError;
     }
 
@@ -242,7 +242,7 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
     catch (boost::system::system_error &e)
     {
         RCLCPP_ERROR(node_->get_logger(), "write error for command: %s", request);
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Write error for sendSOPASCommand.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Write error for sendSOPASCommand.");
         return ExitError;
     }
 
@@ -253,7 +253,7 @@ int SickTimCommonTcp::sendSOPASCommand(const char* request, std::vector<unsigned
     if (readWithTimeout(1000, buffer, BUF_SIZE, &bytes_read, 0) == ExitError)
     {
         RCLCPP_ERROR_THROTTLE(node_->get_logger(), *node_->get_clock(), 1000, "sendSOPASCommand: no full reply available for read after 1s");
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "sendSOPASCommand: no full reply available for read after 5 s.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "sendSOPASCommand: no full reply available for read after 5 s.");
         return ExitError;
     }
 
@@ -270,7 +270,7 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
 {
     if (!socket_.is_open()) {
         RCLCPP_ERROR(node_->get_logger(), "get_datagram: socket not open");
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "get_datagram: socket not open.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "get_datagram: socket not open.");
         return ExitError;
     }
 
@@ -288,7 +288,7 @@ int SickTimCommonTcp::get_datagram(unsigned char* receiveBuffer, int bufferSize,
     if (readWithTimeout(timeout, buffer, bufferSize, actual_length, &exception_occured) != ExitSuccess)
     {
         RCLCPP_ERROR_THROTTLE(node_->get_logger(), *node_->get_clock(), 1000, "get_datagram: no data available for read after %zu ms", timeout);
-        diagnostics_.broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "get_datagram: no data available for read after timeout.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "get_datagram: no data available for read after timeout.");
 
         // Attempt to reconnect when the connection was terminated
         if (!socket_.is_open())
