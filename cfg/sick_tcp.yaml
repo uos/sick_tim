@@ -1,6 +1,6 @@
 sick_driver:
   ros__parameters:
-    hostname: "192.168.0.1"
+    hostname: "192.168.0.40"
     port: "2112"
     time_limit: 5
     subscribe_datagram: false
@@ -8,8 +8,8 @@ sick_driver:
     range_min: 0.05
     range_max: 25.0
     time_increment: 0.000061722
-    min_ang: -2.35619449019
-    max_ang: 2.35619449019
+    min_ang: -1.57
+    max_ang: 1.57
     intensity: true
     skip: 0
     frame_id: "laser"
