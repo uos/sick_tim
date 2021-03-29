@@ -96,6 +96,7 @@ int main(int argc, char **argv)
   }
 
   sick_tim::SickTimCommon* s = nullptr;
+  rclcpp::spin_some(node);
 
   int result = sick_tim::ExitError;
   while (rclcpp::ok())
