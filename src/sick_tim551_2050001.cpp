@@ -36,7 +36,6 @@
 #include <sick_tim/sick_tim_common_usb.h>
 #include <sick_tim/sick_tim_common_tcp.h>
 #include <sick_tim/sick_tim_common_mockup.h>
-#include <sick_tim/sick_node_interface.h>
 #include <sick_tim/sick_tim551_2050001_parser.h>
 
 
