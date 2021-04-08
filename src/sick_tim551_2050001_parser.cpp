@@ -302,13 +302,14 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
-  double start_time_adjusted = start_time.seconds();
+  double start_time_adjusted = start_time.seconds()
             - number_of_data * msg.time_increment   // shift backward to time of first scan point
             + index_min * msg.time_increment        // shift forward to time of first published scan point
             + config.time_offset;                   // add time offset (usually negative) to account for USB latency etc.
   if (start_time_adjusted >= 0.0)   // ensure that ros::Time is not negative (otherwise runtime error)
   {
-    msg.header.stamp.sec = start_time_adjusted;
+    msg.header.stamp.sec = std::floor(start_time_adjusted);
+    msg.header.stamp.nanosec = (start_time_adjusted - std::floor(start_time_adjusted)) * 1e9;
   } else {
     RCLCPP_WARN(rclcpp::get_logger(""), "ROS time is 0! Did you set the parameter use_sim_time to true?");
   }
