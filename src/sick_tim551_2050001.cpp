@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   node->declare_parameter("time_offset", -0.001);
   node->declare_parameter("auto_reboot", true);
 
-  sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
+  sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser(node->shared_from_this());
 
   diagnostic_updater::Updater * diagnostics = new diagnostic_updater::Updater(node, 10.0);
   diagnostics->setHardwareID("none");   // set from device after connection
