@@ -39,13 +39,13 @@
 namespace sick_tim
 {
 
-SickTim5512050001Parser::SickTim5512050001Parser() :
+SickTim5512050001Parser::SickTim5512050001Parser(rclcpp::Node::SharedPtr node) :
     AbstractParser(),
     override_range_min_(0.05),
     override_range_max_(10.0),
     override_time_increment_(-1.0)
 {
-  clock_ = rclcpp::Clock();
+  clock_ = *node->get_clock();
 }
 
 SickTim5512050001Parser::~SickTim5512050001Parser()

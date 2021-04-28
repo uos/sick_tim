@@ -44,7 +44,7 @@ namespace sick_tim
 class SickTim5512050001Parser : public AbstractParser
 {
 public:
-  SickTim5512050001Parser();
+  SickTim5512050001Parser(rclcpp::Node::SharedPtr node);
   virtual ~SickTim5512050001Parser();
 
   virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
