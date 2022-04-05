@@ -1,7 +1,7 @@
 sick_tim
 ========
 
-For documentation, please see [sick_tim at the ROS wiki](http://wiki.ros.org/sick_tim).
+For documentation, please see [sick_tim at the ROS wiki](https://wiki.ros.org/sick_tim).
 
 Setting up udev rules
 ---------------------
