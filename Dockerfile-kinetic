@@ -9,7 +9,7 @@ COPY . /ws/src/sick_tim
 WORKDIR /ws
 
 # Use rosdep to install all dependencies (including ROS itself)
-RUN rosdep init && rosdep update && rosdep install --from-paths src -i -y --rosdistro kinetic
+RUN rosdep init && rosdep update --include-eol-distros && rosdep install --from-paths src -i -y --rosdistro kinetic
 
 RUN /bin/bash -c "source /opt/ros/kinetic/setup.bash && \
     catkin init && \
