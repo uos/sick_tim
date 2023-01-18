@@ -54,7 +54,17 @@ SickTim5512050001Parser::~SickTim5512050001Parser()
 int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
                                      sensor_msgs::LaserScan &msg)
 {
-  static const size_t HEADER_FIELDS = 33;
+  // general message structure:
+  //
+  // - message header   20 fields
+  // - DIST1 header      6 fields
+  // - DIST1 data        N fields
+  // - RSSI included?    1 field
+  // - RSSI1 header      6 fields (optional)
+  // - RSSI1 data        N fields (optional)
+  // - footer         >= 5 fields, depending on number of spaces in device label
+  static const size_t HEADER_FIELDS = 26;
+  static const size_t MIN_FOOTER_FIELDS = 5;
   char* cur_field;
   size_t count;
 
@@ -82,11 +92,11 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // Validate header. Total number of tokens is highly unreliable as this may
   // change when you change the scanning range or the device name using SOPAS ET
   // tool. The header remains stable, however.
-  if (count < HEADER_FIELDS)
+  if (count < HEADER_FIELDS + 1 + MIN_FOOTER_FIELDS)
   {
     ROS_WARN(
-        "received less fields than minimum fields (actual: %zu, minimum: %zu), ignoring scan", count, HEADER_FIELDS);
-    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, > 33 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
+        "received less fields than minimum fields (actual: %zu, minimum: %zu), ignoring scan", count, HEADER_FIELDS + 1 + MIN_FOOTER_FIELDS);
+    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, > 32 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
     // ROS_DEBUG("received message was: %s", datagram_copy);
     return ExitError;
   }
@@ -111,15 +121,16 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     ROS_WARN("Data length is outside acceptable range 1-811 (%d). Ignoring scan", number_of_data);
     return ExitError;
   }
-  if (count < HEADER_FIELDS + number_of_data)
+  if (count < HEADER_FIELDS + number_of_data + 1 + MIN_FOOTER_FIELDS)
   {
-    ROS_WARN("Less fields than expected for %d data points (%zu). Ignoring scan", number_of_data, count);
+    ROS_WARN("Less fields than expected (expected: >= %zu, actual: %zu). Ignoring scan",
+             HEADER_FIELDS + number_of_data + 1 + MIN_FOOTER_FIELDS, count);
     return ExitError;
   }
   ROS_DEBUG("Number of data: %d", number_of_data);
 
   // Calculate offset of field that contains indicator of whether or not RSSI data is included
-  size_t rssi_idx = 26 + number_of_data;
+  size_t rssi_idx = HEADER_FIELDS + number_of_data;
   int tmp;
   sscanf(fields[rssi_idx], "%d", &tmp);
   bool rssi = tmp > 0;
@@ -131,15 +142,16 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     // Number of RSSI data should be equal to number of data
     if (number_of_rssi_data != number_of_data)
     {
-      ROS_WARN("Number of RSSI data is lower than number of range data (%d vs %d", number_of_data, number_of_rssi_data);
+      ROS_WARN("Number of RSSI data (%d) is not equal to number of range data (%d)", number_of_rssi_data, number_of_data);
       return ExitError;
     }
 
     // Check if the total length is still appropriate.
     // RSSI data size = number of RSSI readings + 6 fields describing the data
-    if (count < HEADER_FIELDS + number_of_data + number_of_rssi_data + 6)
+    if (count < HEADER_FIELDS + number_of_data + 1 + 6 + number_of_rssi_data + MIN_FOOTER_FIELDS)
     {
-      ROS_WARN("Less fields than expected for %d data points (%zu). Ignoring scan", number_of_data, count);
+      ROS_WARN("Less fields than expected with RSSI data (expected: >= %zu, actual: %zu). Ignoring scan",
+               HEADER_FIELDS + number_of_data + 1 + 6 + number_of_rssi_data + MIN_FOOTER_FIELDS, count);
       return ExitError;
     }
 
@@ -239,7 +251,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   for (int j = index_min; j <= index_max; ++j)
   {
     unsigned short range;
-    sscanf(fields[j + 26], "%hx", &range);
+    sscanf(fields[j + HEADER_FIELDS], "%hx", &range);
     if (range == 0)
       msg.ranges[j - index_min] = std::numeric_limits<float>::infinity();
     else
@@ -258,12 +270,13 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
       //   26 + n + 5 = RSSI angular step width (equal to Range angular step width)
       //   26 + n + 6 = RSSI number of data (equal to Range number of data)
       //   26 + n + 7 .. 26 + n + 7 + n - 1: RSSI_Data_1 .. RSSI_Data_n
-      //   26 + n + 7 + n .. 26 + n + 7 + n + 2 = unknown (but seems to be [0, 1, B] always)
-      //   26 + n + 7 + n + 2 .. count - 4 = device label
+      //   26 + n + 7 + n = unknown (seems to be always 0)
+      //   26 + n + 7 + n + 1 = device label included? (0 = no, 1 = yes)
+      //   26 + n + 7 + n + 2 .. count - 4 = device label as a length-prefixed string, e.g. 0xA "Scipio_LRF" or 0xB "not defined"
       //   count - 3 .. count - 1 = unknown (but seems to be 0 always)
       //   <ETX> (\x03)
       msg.intensities.resize(index_max - index_min + 1);
-      size_t offset = 26 + number_of_data + 7;
+      size_t offset = HEADER_FIELDS + number_of_data + 7;
       for (int j = index_min; j <= index_max; ++j)
       {
         unsigned short intensity;
@@ -288,13 +301,16 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
-  msg.header.stamp = start_time - ros::Duration().fromSec(number_of_data * msg.time_increment);
-
-  // - shift forward to time of first published scan point
-  msg.header.stamp += ros::Duration().fromSec((double)index_min * msg.time_increment);
-
-  // - add time offset (to account for USB latency etc.)
-  msg.header.stamp += ros::Duration().fromSec(config.time_offset);
+  double start_time_adjusted = start_time.toSec()
+            - number_of_data * msg.time_increment   // shift backward to time of first scan point
+            + index_min * msg.time_increment        // shift forward to time of first published scan point
+            + config.time_offset;                   // add time offset (usually negative) to account for USB latency etc.
+  if (start_time_adjusted >= 0.0)   // ensure that ros::Time is not negative (otherwise runtime error)
+  {
+    msg.header.stamp.fromSec(start_time_adjusted);
+  } else {
+    ROS_WARN("ROS time is 0! Did you set the parameter use_sim_time to true?");
+  }
 
   // ----- consistency check
  float expected_time_increment = msg.scan_time * msg.angle_increment / (2.0 * M_PI);

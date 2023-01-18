@@ -329,7 +329,11 @@ int SickTimCommonUsb::init_device()
   /*
    * Set the verbosity level to 3 as suggested in the documentation.
    */
+#if LIBUSB_API_VERSION >= 0x01000106
+  libusb_set_option(ctx_, LIBUSB_OPTION_LOG_LEVEL, 3);
+#else
   libusb_set_debug(ctx_, 3);
+#endif
 
   /*
    * Get a list of all SICK TIM3xx devices connected to the USB bus.
@@ -368,8 +372,8 @@ int SickTimCommonUsb::init_device()
   libusb_open(devices_[device_number_], &device_handle_);
   if (device_handle_ == NULL)
   {
-    ROS_ERROR("LIBUSB - Cannot open device; please read sick_tim/udev/README");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device; please read sick_tim/udev/README.");
+    ROS_ERROR("LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
+    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
     return ExitError;
   }
   else

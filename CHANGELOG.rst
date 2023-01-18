@@ -2,13 +2,52 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.0.13 (2019-01-18)
+0.0.17 (2020-05-25)
+-------------------
+* Switch to non-deprecated node in launch files
+  The state_publisher node is deprecated in Kinetic and was removed in
+  Noetic.
+* Avoid compilation warning in libusb on noetic
+* Contributors: Martin Günther
+
+0.0.16 (2019-05-06)
+-------------------
+* travis CI: Switch to Docker
+* Avoid runtime error if ROS time is 0
+  See `#76 <https://github.com/uos/sick_tim/issues/76>`_
+* Contributors: Martin Günther
+
+0.0.15 (2019-03-04)
+-------------------
+* Add libusb-1.0-dev to build_export_depend (`#75 <https://github.com/uos/sick_tim/issues/75>`_)
+* Contributors: Alex Moriarty
+
+0.0.13-bis (2019-01-18)
 -------------------
 * Merge branch 'fix-test-error' into 'dubnium-devel'
   Fix unprotected test
   See merge request ros-overlays/sick_tim!1
 * Fix unprotected test
 * Contributors: Victor Lopez
+
+0.0.14 (2019-01-09)
+-------------------
+* Install udev rules during binary package installation
+* TiM551/TiM571: Fix HEADER_FIELDS calculation when device name is not set
+  Fixes `#72 <https://github.com/uos/sick_tim/issues/72>`_.
+* sick_mrs1000: Fix missing cloud time stamp (`#69 <https://github.com/uos/sick_tim/issues/69>`_)
+  Fixes `#68 <https://github.com/uos/sick_tim/issues/68>`_.
+* Contributors: Martin Günther
+
+0.0.13 (2018-05-25)
+-------------------
+* First release into melodic
+* Fix mrs1000 frame_id parameter (`#61 <https://github.com/uos/sick_tim/issues/61>`_)
+  If frame_id parameter was defined to something other than "laser", the node would not publish the /scan topic and the /cloud header.frame_id would always be "laser" even if a different one was defined. This fixes both issues.
+* Add min/max angle and range parameters to URDF macros (`#60 <https://github.com/uos/sick_tim/issues/60>`_)
+* catkin test-flag around `roslaunch_add_file_check` (`#59 <https://github.com/uos/sick_tim/issues/59>`_)
+  Eval `CATKIN_ENABLE_TESTING` prior to call `roslaunch_add_file_check` to ensure the function is defined.
+* Contributors: Jacob Perron, Jeremie Deray, Patrick Hussey
 
 0.0.12 (2018-01-31)
 -------------------

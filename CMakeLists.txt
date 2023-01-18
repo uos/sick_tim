@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.1)
+cmake_policy(SET CMP0048 NEW)
 project(sick_tim)
 
 find_package(catkin REQUIRED
@@ -100,4 +101,4 @@ install(DIRECTORY urdf/
 
 if(CATKIN_ENABLE_TESTING)
   roslaunch_add_file_check(launch)
-endif()
+endif(CATKIN_ENABLE_TESTING)

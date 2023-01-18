@@ -120,7 +120,7 @@ int SickMrs1000Communication::loopOnce()
        * different than layer 0, so don't publish it (because the points
        * don't lie in a plane)
        */
-      if(scan.header.frame_id == "laser")
+      if(scan.header.frame_id != "")
       {
         diagnosticPub_->publish(scan);
       }
