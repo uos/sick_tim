@@ -18,7 +18,7 @@
   </xacro:macro>
 
   <xacro:macro name="sick_tim" params="name ros_topic length width height mass z_offset min_angle max_angle min_range max_range mesh">
-    <!-- z_offset: distance between base plate and laser center (= center of mesh) -->
+    <!-- z_offset distance between base plate and laser center (= center of mesh) -->
     <link name="${name}_mount_link">
       <inertial>
         <mass value="0.001" />

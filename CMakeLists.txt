@@ -1,104 +1,82 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0048 NEW)
 project(sick_tim)
 
-find_package(catkin REQUIRED
-    COMPONENTS
-      diagnostic_updater
-      dynamic_reconfigure
-      roscpp
-      roslaunch
-      sensor_msgs
-)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+find_package(ament_cmake REQUIRED)
+find_package(example_interfaces REQUIRED)
+find_package(diagnostic_updater REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libusb libusb-1.0)
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-generate_dynamic_reconfigure_options(cfg/SickTim.cfg)
-
-catkin_package(
-    DEPENDS Boost libusb
-    CATKIN_DEPENDS roscpp sensor_msgs diagnostic_updater dynamic_reconfigure
-    LIBRARIES sick_tim_3xx
-    INCLUDE_DIRS include)
-
-include_directories(include)
-include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${libusb_INCLUDE_DIRS})
+include_directories(include ${libusb_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_library(sick_tim_3xx
     src/sick_tim_common.cpp
     src/sick_tim_common_usb.cpp
     src/sick_tim_common_mockup.cpp
     src/abstract_parser.cpp)
-add_dependencies(sick_tim_3xx ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS})
-target_link_libraries(sick_tim_3xx
-    ${catkin_LIBRARIES}
-    ${libusb_LIBRARIES})
-
-add_executable(sick_tim310s01
-    src/sick_tim310s01.cpp
-    src/sick_tim310s01_parser.cpp)
-target_link_libraries(sick_tim310s01 sick_tim_3xx)
-
-add_executable(sick_tim310
-    src/sick_tim310.cpp
-    src/sick_tim310_parser.cpp)
-target_link_libraries(sick_tim310 sick_tim_3xx)
-
-add_executable(sick_tim310_1130000m01
-    src/sick_tim310_1130000m01.cpp
-    src/sick_tim310_1130000m01_parser.cpp)
-target_link_libraries(sick_tim310_1130000m01 sick_tim_3xx)
+ament_target_dependencies(sick_tim_3xx diagnostic_updater example_interfaces rclcpp sensor_msgs)
+target_link_libraries(sick_tim_3xx ${libusb_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(sick_tim551_2050001
     src/sick_tim551_2050001.cpp
     src/sick_tim_common_tcp.cpp
     src/sick_tim551_2050001_parser.cpp)
+ament_target_dependencies(sick_tim551_2050001 diagnostic_updater example_interfaces rclcpp sensor_msgs)
 target_link_libraries(sick_tim551_2050001 sick_tim_3xx)
 
-add_executable(sick_mrs1000
-  src/sick_mrs1000.cpp
-  src/sick_mrs1000_communication.cpp
-  src/sick_tim_common_tcp.cpp
-  src/scan_and_cloud_parser.cpp
-  src/sick_mrs1000_parser.cpp)
-target_link_libraries(sick_mrs1000 sick_tim_3xx)
-
-add_executable(sick_tim_datagram_test
-    test/sick_tim_datagram_test.cpp
-    src/sick_tim310s01_parser.cpp
-    src/abstract_parser.cpp)
-target_link_libraries(sick_tim_datagram_test sick_tim_3xx)
-
 install(TARGETS sick_tim_3xx
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+    DESTINATION lib/${PROJECT_NAME})
 
-install(
-    TARGETS
-        sick_tim310s01
-        sick_tim310
-        sick_tim310_1130000m01
-        sick_tim551_2050001
-        sick_mrs1000
-        sick_tim_datagram_test
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS
+  sick_tim551_2050001
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME})
 
 install(FILES include/${PROJECT_NAME}/abstract_parser.h
               include/${PROJECT_NAME}/sick_tim_common.h
               include/${PROJECT_NAME}/sick_tim_common_usb.h
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+    DESTINATION include/${PROJECT_NAME})
 
 install(DIRECTORY launch/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
+    DESTINATION share/${PROJECT_NAME})
+
+install(DIRECTORY cfg/
+    DESTINATION share/${PROJECT_NAME}/cfg)
 
 install(DIRECTORY meshes/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/meshes)
+    DESTINATION share/${PROJECT_NAME}/meshes)
 
 install(DIRECTORY urdf/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf)
+    DESTINATION share/${PROJECT_NAME}/urdf)
 
-if(CATKIN_ENABLE_TESTING)
-  roslaunch_add_file_check(launch)
-endif(CATKIN_ENABLE_TESTING)
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(ament_cmake)
+    
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()
+

@@ -36,6 +36,7 @@
 #define SICK_TIM551_2050001_PARSER_H_
 
 #include "abstract_parser.h"
+#include "sick_tim/sick_tim_common.h"
 
 namespace sick_tim
 {
@@ -43,11 +44,11 @@ namespace sick_tim
 class SickTim5512050001Parser : public AbstractParser
 {
 public:
-  SickTim5512050001Parser();
+  SickTim5512050001Parser(rclcpp::Node::SharedPtr node);
   virtual ~SickTim5512050001Parser();
 
   virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &msg);
+                             sensor_msgs::msg::LaserScan &msg);
 
   void set_range_min(float min);
   void set_range_max(float max);
@@ -56,6 +57,7 @@ public:
 private:
   float override_range_min_, override_range_max_;
   float override_time_increment_;
+  rclcpp::Clock clock_;
 };
 
 } /* namespace sick_tim */

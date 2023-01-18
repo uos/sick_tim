@@ -44,30 +44,131 @@
 namespace sick_tim
 {
 
-SickTimCommon::SickTimCommon(AbstractParser* parser) :
-    diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser)
+SickTimCommon::SickTimCommon(AbstractParser* parser, rclcpp::Node::SharedPtr node, diagnostic_updater::Updater * diagnostics) :
+    diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser), diagnostics_(diagnostics)
     // FIXME All Tims have 15Hz?
 {
-  dynamic_reconfigure::Server<sick_tim::SickTimConfig>::CallbackType f;
-  f = boost::bind(&sick_tim::SickTimCommon::update_config, this, _1, _2);
-  dynamic_reconfigure_server_.setCallback(f);
+  node_ = node;
+  // // Parameter Client Setup
+  // while (!parameter_client_->wait_for_service(std::chrono::seconds(5))) {
+  //   if (!rclcpp::ok()) {
+  //     RCLCPP_ERROR(
+  //       node_->get_logger(),
+  //       "Interrupted while waiting for the service. Exiting.");
+  //     rclcpp::shutdown();
+  //   }
+  //   RCLCPP_INFO(
+  //     node_->get_logger(),
+  //     "service not available, waiting again...");
+  // }
+
+  // parameter_subscription_ = parameter_client_->on_parameter_event(
+  //     std::bind(&SickTimCommon::onParameterEvent, this, std::placeholders::_1));
+
+  // dynamic_reconfigure::Server<sick_tim::SickTimConfig>::CallbackType f;
+  // f = boost::bind(&sick_tim::SickTimCommon::update_config, this, _1, _2);
+  // dynamic_reconfigure_server_.setCallback(f);
 
   // datagram publisher (only for debug)
-  ros::NodeHandle pn("~");
-  pn.param<bool>("publish_datagram", publish_datagram_, false);
+  publish_datagram_ = node_->get_parameter("publish_datagram").as_bool();
+
+  // Declare Sick Tim Parameters
+  config_.min_ang = node_->get_parameter("min_ang").as_double();
+  config_.max_ang = node_->get_parameter("max_ang").as_double();
+  config_.intensity = node_->get_parameter("intensity").as_bool();
+  config_.skip = node_->get_parameter("skip").as_int();
+  config_.frame_id = node_->get_parameter("frame_id").as_string();
+  config_.time_offset = node_->get_parameter("time_offset").as_double();
+  config_.auto_reboot = node_->get_parameter("auto_reboot").as_bool();
+  
   if (publish_datagram_)
-    datagram_pub_ = nh_.advertise<std_msgs::String>("datagram", 1000);
+  {
+    datagram_pub_ = node_->create_publisher<example_interfaces::msg::String>("datagram", 1000);
+  }
 
   // scan publisher
-  pub_ = nh_.advertise<sensor_msgs::LaserScan>("scan", 1000);
-
-  diagnostics_.setHardwareID("none");   // set from device after connection
-  diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::LaserScan>(pub_, diagnostics_,
+  pub_ = node_->create_publisher<sensor_msgs::msg::LaserScan>("scan", 1000);
+  diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::LaserScan>(pub_, *diagnostics_,
           // frequency should be target +- 10%.
           diagnostic_updater::FrequencyStatusParam(&expectedFrequency_, &expectedFrequency_, 0.1, 10),
           // timestamp delta can be from 0.0 to 1.3x what it ideally is.
           diagnostic_updater::TimeStampStatusParam(-1, 1.3 * 1.0/expectedFrequency_ - config_.time_offset));
-  ROS_ASSERT(diagnosticPub_ != NULL);
+  assert(diagnosticPub_ != NULL);
+}
+
+void SickTimCommon::onParameterEvent(const rcl_interfaces::msg::ParameterEvent::SharedPtr event)
+{
+  for (auto & changed_parameter : event->changed_parameters) {
+    if(changed_parameter.name == "min_ang")
+    {
+      if(changed_parameter.value.double_value < -0.75 * M_PI || changed_parameter.value.double_value > 0.75 * M_PI)
+      {
+        RCLCPP_WARN(node_->get_logger(), "Minimum angle outside limits: [-0.75*pi,0.75*pi] | Leaving parameter unchanged");
+        return;
+      }
+      if (changed_parameter.value.double_value > config_.max_ang)
+      {
+        RCLCPP_WARN(node_->get_logger(), "Minimum angle must be less than minimum angle. Adjusting min_ang.");
+        config_.min_ang = config_.max_ang;
+      }
+      else
+      {
+        config_.min_ang = changed_parameter.value.double_value;
+      }
+    } else if(changed_parameter.name == "max_ang")
+    {
+      if(changed_parameter.value.double_value < -0.75 * M_PI || changed_parameter.value.double_value > 0.75 * M_PI)
+      {
+        RCLCPP_WARN(node_->get_logger(), "Maximum angle outside limits: [-0.75*pi,0.75*pi] | Leaving parameter unchanged");
+        return;
+      }
+      if (changed_parameter.value.double_value < config_.min_ang)
+      {
+        RCLCPP_WARN(node_->get_logger(), "Maximum angle must be greater than minimum angle. Adjusting max_ang.");
+        config_.max_ang = config_.min_ang;
+      }
+      else
+      {
+        config_.max_ang = changed_parameter.value.double_value;
+      }
+    } else if(changed_parameter.name == "intensity")
+    {
+      config_.intensity = changed_parameter.value.bool_value;
+    } else if(changed_parameter.name == "skip")
+    {
+      if(changed_parameter.value.integer_value < 0 || changed_parameter.value.integer_value > 9)
+      {
+        RCLCPP_WARN(node_->get_logger(), "Skip outside limits = [0,9] | Leaving parameter unchanged");
+        return;
+      }
+      config_.skip = changed_parameter.value.integer_value;
+    } else if(changed_parameter.name == "frame_id")
+    {
+      config_.frame_id = changed_parameter.value.string_value;
+    } else if(changed_parameter.name == "time_offset")
+    {
+      if(changed_parameter.value.double_value < -0.25 || changed_parameter.value.double_value > 0.25)
+      {
+        RCLCPP_WARN(node_->get_logger(), "Time offset outside limits = [-0.25,0.25] | Leaving parameter unchanged");
+        return;
+      }
+      config_.time_offset = changed_parameter.value.double_value;
+    } else if(changed_parameter.name == "auto_reboot")
+    {
+      config_.auto_reboot = changed_parameter.value.bool_value;
+    } else if(changed_parameter.name == "publish_datagram")
+    {
+      config_.publish_datagram = changed_parameter.value.bool_value;
+      if(config_.publish_datagram)
+      {
+        datagram_pub_ = node_->create_publisher<example_interfaces::msg::String>("datagram", 1000);
+      }
+      else
+      {
+        datagram_pub_.reset();
+      }
+    }
+  }
 }
 
 int SickTimCommon::stop_scanner()
@@ -95,15 +196,15 @@ bool SickTimCommon::rebootScanner()
   int result = sendSOPASCommand("\x02sMN SetAccessMode 03 F4724744\x03\0", &access_reply);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error setting access mode");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error setting access mode");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
     return false;
   }
   std::string access_reply_str = replyToString(access_reply);
   if (access_reply_str != "sAN SetAccessMode 1")
   {
-    ROS_ERROR_STREAM("SOPAS - Error setting access mode, unexpected response : " << access_reply_str);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "SOPAS - Error setting access mode, unexpected response : " << access_reply_str);
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
     return false;
   }
 
@@ -114,22 +215,22 @@ bool SickTimCommon::rebootScanner()
   result = sendSOPASCommand("\x02sMN mSCreboot\x03\0", &reboot_reply);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error rebooting scanner");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error rebooting device.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error rebooting scanner");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error rebooting device.");
     return false;
   }
   std::string reboot_reply_str = replyToString(reboot_reply);
   if (reboot_reply_str != "sAN mSCreboot")
   {
-    ROS_ERROR_STREAM("SOPAS - Error rebooting scanner, unexpected response : " << reboot_reply_str);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "SOPAS - Error rebooting scanner, unexpected response : " << reboot_reply_str);
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error setting access mode.");
     return false;
   }
 
-  ROS_INFO("SOPAS - Rebooted scanner");
+  RCLCPP_INFO(node_->get_logger(), "SOPAS - Rebooted scanner");
 
   // Wait a few seconds after rebooting
-  ros::Duration(15.0).sleep();
+  rclcpp::sleep_for(std::chrono::seconds(15));
 
   return true;
 }
@@ -146,12 +247,12 @@ int SickTimCommon::init()
 {
   int result = init_device();
   if(result != 0) {
-      ROS_FATAL("Failed to init device: %d", result);
+      RCLCPP_FATAL(node_->get_logger(), "Failed to init device: %d", result);
       return result;
   }
   result = init_scanner();
   if(result != 0) {
-      ROS_FATAL("Failed to init scanner: %d", result);
+      RCLCPP_FATAL(node_->get_logger(), "Failed to init scanner: %d", result);
   }
   return result;
 }
@@ -166,8 +267,8 @@ int SickTimCommon::init_scanner()
   int result = sendSOPASCommand(requestDeviceIdent, &identReply);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error reading variable 'DeviceIdent'.");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'DeviceIdent'.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error reading variable 'DeviceIdent'.");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'DeviceIdent'.");
   }
 
   /*
@@ -178,14 +279,14 @@ int SickTimCommon::init_scanner()
   result = sendSOPASCommand(requestSerialNumber, &serialReply);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error reading variable 'SerialNumber'.");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'SerialNumber'.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error reading variable 'SerialNumber'.");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'SerialNumber'.");
   }
 
   // set hardware ID based on DeviceIdent and SerialNumber
   std::string identStr = replyToString(identReply);
   std::string serialStr = replyToString(serialReply);
-  diagnostics_.setHardwareID(identStr + " " + serialStr);
+  diagnostics_->setHardwareID(identStr + " " + serialStr);
 
   if (!isCompatibleDevice(identStr))
     return ExitFatal;
@@ -197,8 +298,8 @@ int SickTimCommon::init_scanner()
   result = sendSOPASCommand(requestFirmwareVersion, NULL);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error reading variable 'FirmwareVersion'.");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'FirmwareVersion'.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error reading variable 'FirmwareVersion'.");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'FirmwareVersion'.");
   }
 
   /*
@@ -209,8 +310,8 @@ int SickTimCommon::init_scanner()
   result = sendSOPASCommand(requestDeviceState, &deviceStateReply);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error reading variable 'devicestate'.");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'devicestate'.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error reading variable 'devicestate'.");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error reading variable 'devicestate'.");
   }
   std::string deviceStateReplyStr = replyToString(deviceStateReply);
 
@@ -220,15 +321,15 @@ int SickTimCommon::init_scanner()
    */
   if (deviceStateReplyStr == "sRA SCdevicestate 0")
   {
-    ROS_WARN("Laser is busy");
+    RCLCPP_WARN(node_->get_logger(), "Laser is busy");
   }
   else if (deviceStateReplyStr == "sRA SCdevicestate 1")
   {
-    ROS_DEBUG("Laser is ready");
+    RCLCPP_DEBUG(node_->get_logger(), "Laser is ready");
   }
   else if (deviceStateReplyStr == "sRA SCdevicestate 2")
   {
-    ROS_ERROR_STREAM("Laser reports error state : " << deviceStateReplyStr);
+    RCLCPP_ERROR_STREAM(node_->get_logger(), "Laser reports error state : " << deviceStateReplyStr);
     if (config_.auto_reboot)
     {
       rebootScanner();
@@ -236,7 +337,7 @@ int SickTimCommon::init_scanner()
   }
   else
   {
-    ROS_WARN_STREAM("Laser reports unknown devicestate : " << deviceStateReplyStr);
+    RCLCPP_WARN_STREAM(node_->get_logger(), "Laser reports unknown devicestate : " << deviceStateReplyStr);
   }
 
   /*
@@ -246,8 +347,8 @@ int SickTimCommon::init_scanner()
   result = sendSOPASCommand(requestScanData, NULL);
   if (result != 0)
   {
-    ROS_ERROR("SOPAS - Error starting to stream 'LMDscandata'.");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "SOPAS - Error starting to stream 'LMDscandata'.");
+    RCLCPP_ERROR(node_->get_logger(), "SOPAS - Error starting to stream 'LMDscandata'.");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "SOPAS - Error starting to stream 'LMDscandata'.");
     return ExitError;
   }
 
@@ -278,9 +379,9 @@ bool sick_tim::SickTimCommon::isCompatibleDevice(const std::string identStr) con
       && strncmp("TiM3", device_string, 4) == 0
       && version_major >= 2 && version_minor >= 50)
   {
-    ROS_ERROR("This scanner model/firmware combination does not support ranging output!");
-    ROS_ERROR("Supported scanners: TiM5xx: all firmware versions; TiM3xx: firmware versions < V2.50.");
-    ROS_ERROR("This is a %s, firmware version %d.%d", device_string, version_major, version_minor);
+    RCLCPP_ERROR(node_->get_logger(), "This scanner model/firmware combination does not support ranging output!");
+    RCLCPP_ERROR(node_->get_logger(), "Supported scanners: TiM5xx: all firmware versions; TiM3xx: firmware versions < V2.50.");
+    RCLCPP_ERROR(node_->get_logger(), "This is a %s, firmware version %d.%d", device_string, version_major, version_minor);
 
     return false;
   }
@@ -289,7 +390,8 @@ bool sick_tim::SickTimCommon::isCompatibleDevice(const std::string identStr) con
 
 int SickTimCommon::loopOnce()
 {
-  diagnostics_.update();
+
+  diagnostics_->force_update();
 
   unsigned char receiveBuffer[65536];
   int actual_length = 0;
@@ -298,8 +400,8 @@ int SickTimCommon::loopOnce()
   int result = get_datagram(receiveBuffer, 65536, &actual_length);
   if (result != 0)
   {
-      ROS_ERROR("Read Error when getting datagram: %i.", result);
-      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Read Error when getting datagram.");
+      RCLCPP_ERROR(node_->get_logger(), "Read Error when getting datagram: %i.", result);
+      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Read Error when getting datagram.");
       return ExitError; // return failure to exit node
   }
   if(actual_length <= 0)
@@ -311,12 +413,12 @@ int SickTimCommon::loopOnce()
 
   if (publish_datagram_)
   {
-    std_msgs::String datagram_msg;
+    example_interfaces::msg::String datagram_msg;
     datagram_msg.data = std::string(reinterpret_cast<char*>(receiveBuffer));
-    datagram_pub_.publish(datagram_msg);
+    datagram_pub_->publish(datagram_msg);
   }
 
-  sensor_msgs::LaserScan msg;
+  sensor_msgs::msg::LaserScan msg;
 
   /*
    * datagrams are enclosed in <STX> (0x02), <ETX> (0x03) pairs
@@ -335,21 +437,6 @@ int SickTimCommon::loopOnce()
   }
 
   return ExitSuccess; // return success to continue looping
-}
-
-void SickTimCommon::check_angle_range(SickTimConfig &conf)
-{
-  if (conf.min_ang > conf.max_ang)
-  {
-    ROS_WARN("Maximum angle must be greater than minimum angle. Adjusting min_ang.");
-    conf.min_ang = conf.max_ang;
-  }
-}
-
-void SickTimCommon::update_config(sick_tim::SickTimConfig &new_config, uint32_t level)
-{
-  check_angle_range(new_config);
-  config_ = new_config;
 }
 
 } /* namespace sick_tim */

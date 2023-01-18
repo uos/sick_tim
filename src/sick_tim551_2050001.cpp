@@ -38,72 +38,93 @@
 #include <sick_tim/sick_tim_common_mockup.h>
 #include <sick_tim/sick_tim551_2050001_parser.h>
 
+
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "sick_tim551_2050001");
-  ros::NodeHandle nhPriv("~");
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<rclcpp::Node>("sick_driver");
+  // rclcpp::executors::SingleThreadedExecutor exec;
+  // rclcpp::NodeOptions options;
+  // exec.add_node(node);
 
   // check for TCP - use if ~hostname is set.
   bool useTCP = false;
   std::string hostname;
-  if(nhPriv.getParam("hostname", hostname)) {
+  hostname = node->declare_parameter("hostname", "");
+  if(hostname != "")
+  {
       useTCP = true;
   }
   std::string port;
-  nhPriv.param<std::string>("port", port, "2112");
+  port = node->declare_parameter("port", "2112");
 
   int timelimit;
-  nhPriv.param("timelimit", timelimit, 5);
+  timelimit = node->declare_parameter("timelimit", 5);
 
   bool subscribe_datagram;
   int device_number;
-  nhPriv.param("subscribe_datagram", subscribe_datagram, false);
-  nhPriv.param("device_number", device_number, 0);
+  node->declare_parameter("subscribe_datagram", false);
+  node->declare_parameter("device_number", 0);
+  // datagram publisher (only for debug)
+  node->declare_parameter("publish_datagram", false);
+  // Declare Sick Tim Parameters
+  node->declare_parameter("min_ang", -0.75 * M_PI);
+  node->declare_parameter("max_ang", 0.75 * M_PI);
+  node->declare_parameter("intensity", true);
+  node->declare_parameter("skip", 0);
+  node->declare_parameter("frame_id", "laser");
+  node->declare_parameter("time_offset", -0.001);
+  node->declare_parameter("auto_reboot", true);
 
-  sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser();
+  sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser(node->shared_from_this());
+
+  diagnostic_updater::Updater * diagnostics = new diagnostic_updater::Updater(node, 10.0);
+  diagnostics->setHardwareID("none");   // set from device after connection
 
   double param;
-  if (nhPriv.getParam("range_min", param))
+  if (node->get_parameter("range_min", param))
   {
     parser->set_range_min(param);
   }
-  if (nhPriv.getParam("range_max", param))
+  if (node->get_parameter("range_max", param))
   {
     parser->set_range_max(param);
   }
-  if (nhPriv.getParam("time_increment", param))
+  if (node->get_parameter("time_increment", param))
   {
     parser->set_time_increment(param);
   }
 
-  sick_tim::SickTimCommon* s = NULL;
+  sick_tim::SickTimCommon* s = nullptr;
+  rclcpp::spin_some(node);
 
   int result = sick_tim::ExitError;
-  while (ros::ok())
+  while (rclcpp::ok())
   {
     // Atempt to connect/reconnect
     if (subscribe_datagram)
-      s = new sick_tim::SickTimCommonMockup(parser);
-    else if (useTCP)
-      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser);
-    else
-      s = new sick_tim::SickTimCommonUsb(parser, device_number);
-    result = s->init();
-
-    while(ros::ok() && (result == sick_tim::ExitSuccess)){
-      ros::spinOnce();
-      result = s->loopOnce();
+    {
+      s = new sick_tim::SickTimCommonMockup(parser, node, diagnostics);
+    } else if (useTCP) {
+      s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser, node, diagnostics);
+    } else {
+      s = new sick_tim::SickTimCommonUsb(parser, device_number, node, diagnostics);
     }
-
+    result = s->init();
+    while(rclcpp::ok() && (result == sick_tim::ExitSuccess)){
+      result = s->loopOnce();
+      rclcpp::spin_some(node);
+    }
     delete s;
 
     if (result == sick_tim::ExitFatal)
       return result;
 
-    if (ros::ok() && !subscribe_datagram && !useTCP)
-      ros::Duration(1.0).sleep(); // Only attempt USB connections once per second
+    if (rclcpp::ok() && !subscribe_datagram && !useTCP)
+      rclcpp::sleep_for(std::chrono::seconds(1)); // Only attempt USB connections once per second
   }
 
   delete parser;
+  delete diagnostics;
   return result;
 }

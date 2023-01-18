@@ -33,18 +33,19 @@
  */
 
 #include <sick_tim/sick_tim551_2050001_parser.h>
-
-#include <ros/ros.h>
+#include <sick_tim/sick_tim_common.h>
+#include <rclcpp/rclcpp.hpp>
 
 namespace sick_tim
 {
 
-SickTim5512050001Parser::SickTim5512050001Parser() :
+SickTim5512050001Parser::SickTim5512050001Parser(rclcpp::Node::SharedPtr node) :
     AbstractParser(),
     override_range_min_(0.05),
     override_range_max_(10.0),
     override_time_increment_(-1.0)
 {
+  clock_ = *node->get_clock();
 }
 
 SickTim5512050001Parser::~SickTim5512050001Parser()
@@ -52,7 +53,7 @@ SickTim5512050001Parser::~SickTim5512050001Parser()
 }
 
 int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                                     sensor_msgs::LaserScan &msg)
+                                     sensor_msgs::msg::LaserScan &msg)
 {
   // general message structure:
   //
@@ -94,20 +95,20 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
   // tool. The header remains stable, however.
   if (count < HEADER_FIELDS + 1 + MIN_FOOTER_FIELDS)
   {
-    ROS_WARN(
+    RCLCPP_WARN(rclcpp::get_logger(""), 
         "received less fields than minimum fields (actual: %zu, minimum: %zu), ignoring scan", count, HEADER_FIELDS + 1 + MIN_FOOTER_FIELDS);
-    ROS_WARN("are you using the correct node? (124 --> sick_tim310_1130000m01, > 32 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
+    RCLCPP_WARN(rclcpp::get_logger(""), "are you using the correct node? (124 --> sick_tim310_1130000m01, > 32 --> sick_tim551_2050001, 580 --> sick_tim310s01, 592 --> sick_tim310)");
     // ROS_DEBUG("received message was: %s", datagram_copy);
     return ExitError;
   }
   if (strcmp(fields[15], "0"))
   {
-    ROS_WARN("Field 15 of received data is not equal to 0 (%s). Unexpected data, ignoring scan", fields[15]);
+    RCLCPP_WARN(rclcpp::get_logger(""), "Field 15 of received data is not equal to 0 (%s). Unexpected data, ignoring scan", fields[15]);
     return ExitError;
   }
   if (strcmp(fields[20], "DIST1"))
   {
-    ROS_WARN("Field 20 of received data is not equal to DIST1i (%s). Unexpected data, ignoring scan", fields[20]);
+    RCLCPP_WARN(rclcpp::get_logger(""), "Field 20 of received data is not equal to DIST1i (%s). Unexpected data, ignoring scan", fields[20]);
     return ExitError;
   }
 
@@ -118,16 +119,16 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
 
   if (number_of_data < 1 || number_of_data > 811)
   {
-    ROS_WARN("Data length is outside acceptable range 1-811 (%d). Ignoring scan", number_of_data);
+    RCLCPP_WARN(rclcpp::get_logger(""), "Data length is outside acceptable range 1-811 (%d). Ignoring scan", number_of_data);
     return ExitError;
   }
   if (count < HEADER_FIELDS + number_of_data + 1 + MIN_FOOTER_FIELDS)
   {
-    ROS_WARN("Less fields than expected (expected: >= %zu, actual: %zu). Ignoring scan",
+    RCLCPP_WARN(rclcpp::get_logger(""), "Less fields than expected (expected: >= %zu, actual: %zu). Ignoring scan",
              HEADER_FIELDS + number_of_data + 1 + MIN_FOOTER_FIELDS, count);
     return ExitError;
   }
-  ROS_DEBUG("Number of data: %d", number_of_data);
+  RCLCPP_DEBUG(rclcpp::get_logger(""), "Number of data: %d", number_of_data);
 
   // Calculate offset of field that contains indicator of whether or not RSSI data is included
   size_t rssi_idx = HEADER_FIELDS + number_of_data;
@@ -142,7 +143,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     // Number of RSSI data should be equal to number of data
     if (number_of_rssi_data != number_of_data)
     {
-      ROS_WARN("Number of RSSI data (%d) is not equal to number of range data (%d)", number_of_rssi_data, number_of_data);
+      RCLCPP_WARN(rclcpp::get_logger(""), "Number of RSSI data (%d) is not equal to number of range data (%d)", number_of_rssi_data, number_of_data);
       return ExitError;
     }
 
@@ -150,22 +151,22 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     // RSSI data size = number of RSSI readings + 6 fields describing the data
     if (count < HEADER_FIELDS + number_of_data + 1 + 6 + number_of_rssi_data + MIN_FOOTER_FIELDS)
     {
-      ROS_WARN("Less fields than expected with RSSI data (expected: >= %zu, actual: %zu). Ignoring scan",
+      RCLCPP_WARN(rclcpp::get_logger(""), "Less fields than expected with RSSI data (expected: >= %zu, actual: %zu). Ignoring scan",
                HEADER_FIELDS + number_of_data + 1 + 6 + number_of_rssi_data + MIN_FOOTER_FIELDS, count);
       return ExitError;
     }
 
     if (strcmp(fields[rssi_idx + 1], "RSSI1"))
     {
-      ROS_WARN("Field %zu of received data is not equal to RSSI1 (%s). Unexpected data, ignoring scan", rssi_idx + 1, fields[rssi_idx + 1]);
+      RCLCPP_WARN(rclcpp::get_logger(""), "Field %zu of received data is not equal to RSSI1 (%s). Unexpected data, ignoring scan", rssi_idx + 1, fields[rssi_idx + 1]);
     }
   }
 
   // ----- read fields into msg
   msg.header.frame_id = config.frame_id;
-  ROS_DEBUG("publishing with frame_id %s", config.frame_id.c_str());
+  RCLCPP_DEBUG(rclcpp::get_logger(""), "publishing with frame_id %s", config.frame_id.c_str());
 
-  ros::Time start_time = ros::Time::now(); // will be adjusted in the end
+  rclcpp::Time start_time = clock_.now(); // will be adjusted in the end
 
   // <STX> (\x02)
   // 0: Type of command (SN)
@@ -243,7 +244,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
     index_max--;
   }
 
-  ROS_DEBUG("index_min: %d, index_max: %d", index_min, index_max);
+  RCLCPP_DEBUG(rclcpp::get_logger(""), "index_min: %d, index_max: %d", index_min, index_max);
   // ROS_DEBUG("angular_step_width: %d, angle_increment: %f, angle_max: %f", angular_step_width, msg.angle_increment, msg.angle_max);
 
   // 26..26 + n - 1: Data_1 .. Data_n
@@ -284,7 +285,7 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
         msg.intensities[j - index_min] = intensity;
       }
     } else {
-      ROS_WARN_ONCE("Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
+      RCLCPP_WARN_ONCE(rclcpp::get_logger(""), "Intensity parameter is enabled, but the scanner is not configured to send RSSI values! "
        "Please read the section 'Enabling intensity (RSSI) output' here: http://wiki.ros.org/sick_tim.");
     }
   }
@@ -301,22 +302,23 @@ int SickTim5512050001Parser::parse_datagram(char* datagram, size_t datagram_leng
 
   // ----- adjust start time
   // - last scan point = now  ==>  first scan point = now - number_of_data * time increment
-  double start_time_adjusted = start_time.toSec()
+  double start_time_adjusted = start_time.seconds()
             - number_of_data * msg.time_increment   // shift backward to time of first scan point
             + index_min * msg.time_increment        // shift forward to time of first published scan point
             + config.time_offset;                   // add time offset (usually negative) to account for USB latency etc.
   if (start_time_adjusted >= 0.0)   // ensure that ros::Time is not negative (otherwise runtime error)
   {
-    msg.header.stamp.fromSec(start_time_adjusted);
+    msg.header.stamp.sec = std::floor(start_time_adjusted);
+    msg.header.stamp.nanosec = (start_time_adjusted - std::floor(start_time_adjusted)) * 1e9;
   } else {
-    ROS_WARN("ROS time is 0! Did you set the parameter use_sim_time to true?");
+    RCLCPP_WARN(rclcpp::get_logger(""), "ROS time is 0! Did you set the parameter use_sim_time to true?");
   }
 
   // ----- consistency check
  float expected_time_increment = msg.scan_time * msg.angle_increment / (2.0 * M_PI);
  if (fabs(expected_time_increment - msg.time_increment) > 0.00001)
  {
-   ROS_WARN_THROTTLE(60, "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
+   RCLCPP_WARN_THROTTLE(rclcpp::get_logger(""), clock_, 60000, "The time_increment, scan_time and angle_increment values reported by the scanner are inconsistent! "
        "Expected time_increment: %.9f, reported time_increment: %.9f. "
        "Perhaps you should set the parameter time_increment to the expected value. This message will print every 60 seconds.",
        expected_time_increment, msg.time_increment);

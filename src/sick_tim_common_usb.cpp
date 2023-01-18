@@ -41,9 +41,10 @@
 namespace sick_tim
 {
 
-SickTimCommonUsb::SickTimCommonUsb(AbstractParser* parser, int device_number) : SickTimCommon(parser),
+SickTimCommonUsb::SickTimCommonUsb(AbstractParser* parser, int device_number, rclcpp::Node::SharedPtr node,  diagnostic_updater::Updater * diagnostics) : SickTimCommon(parser, node, diagnostics),
     ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL), device_number_(device_number)
 {
+  
 }
 
 SickTimCommonUsb::~SickTimCommonUsb()
@@ -108,8 +109,8 @@ ssize_t SickTimCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendo
     int result = libusb_get_device_descriptor(devices[i], &desc);
     if (result < 0)
     {
-      ROS_ERROR("LIBUSB - Failed to get device descriptor");
-      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
+      RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Failed to get device descriptor");
+      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
       continue;
     }
 
@@ -121,8 +122,8 @@ ssize_t SickTimCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendo
       resultDevices = (libusb_device **)realloc(resultDevices, sizeof(libusb_device *) * (numberOfResultDevices + 2));
       if (resultDevices == NULL)
       {
-        ROS_ERROR("LIBUSB - Failed to allocate memory for the device result list.");
-        diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Failed to allocate memory for the device result list.");
+        RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Failed to allocate memory for the device result list.");
+        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Failed to allocate memory for the device result list.");
       }
       else
       {
@@ -167,9 +168,9 @@ void SickTimCommonUsb::freeSOPASDeviceList(libusb_device **list)
  */
 void SickTimCommonUsb::printUSBDeviceDetails(struct libusb_device_descriptor desc)
 {
-  ROS_INFO("Device Class: 0x%x", desc.bDeviceClass);
-  ROS_INFO("VendorID:     0x%x", desc.idVendor);
-  ROS_INFO("ProductID:    0x%x", desc.idProduct);
+  RCLCPP_INFO(node_->get_logger(), "Device Class: 0x%x", desc.bDeviceClass);
+  RCLCPP_INFO(node_->get_logger(), "VendorID:     0x%x", desc.idVendor);
+  RCLCPP_INFO(node_->get_logger(), "ProductID:    0x%x", desc.idProduct);
 }
 
 /*
@@ -184,8 +185,8 @@ void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device* device)
    */
   libusb_get_config_descriptor(device, 0, &config);
 
-  ROS_INFO("Interfaces: %i", (int)config->bNumInterfaces);
-  ROS_INFO("----------------------------------------");
+  RCLCPP_INFO(node_->get_logger(), "Interfaces: %i", (int)config->bNumInterfaces);
+  RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
 
   const struct libusb_interface *interface;
   const struct libusb_interface_descriptor *interface_descriptor;
@@ -195,26 +196,26 @@ void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device* device)
   for (i = 0; i < config->bNumInterfaces; i++)
   {
     interface = &config->interface[i];
-    ROS_INFO("Number of alternate settings: %i", interface->num_altsetting);
+    RCLCPP_INFO(node_->get_logger(), "Number of alternate settings: %i", interface->num_altsetting);
 
     for (j = 0; j < interface->num_altsetting; j++)
     {
       interface_descriptor = &interface->altsetting[j];
 
-      ROS_INFO("Interface number: %i", (int)interface_descriptor->bInterfaceNumber);
-      ROS_INFO("Number of endpoints: %i", (int)interface_descriptor->bNumEndpoints);
+      RCLCPP_INFO(node_->get_logger(), "Interface number: %i", (int)interface_descriptor->bInterfaceNumber);
+      RCLCPP_INFO(node_->get_logger(), "Number of endpoints: %i", (int)interface_descriptor->bNumEndpoints);
 
       for (k = 0; k < interface_descriptor->bNumEndpoints; k++)
       {
         endpoint_descriptor = &interface_descriptor->endpoint[k];
-        ROS_INFO("Descriptor Type: %i", endpoint_descriptor->bDescriptorType);
-        ROS_INFO("EP Address: %i", endpoint_descriptor->bEndpointAddress);
+        RCLCPP_INFO(node_->get_logger(), "Descriptor Type: %i", endpoint_descriptor->bDescriptorType);
+        RCLCPP_INFO(node_->get_logger(), "EP Address: %i", endpoint_descriptor->bEndpointAddress);
       }
     }
 
     if (i < config->bNumInterfaces - 1)
     {
-      ROS_INFO("----------------------------------------");
+      RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
     }
   }
 
@@ -236,24 +237,24 @@ void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libu
     int result = libusb_get_device_descriptor(devices[i], &desc);
     if (result < 0)
     {
-      ROS_ERROR("LIBUSB - Failed to get device descriptor");
-      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
+      RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Failed to get device descriptor");
+      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
       continue;
     }
     if (result == 0)
     {
-      ROS_INFO("SICK AG - TIM3XX - [%zu]", (i + 1));
-      ROS_INFO("----------------------------------------");
+      RCLCPP_INFO(node_->get_logger(), "SICK AG - TIM3XX - [%zu]", (i + 1));
+      RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
       printUSBDeviceDetails(desc);
-      ROS_INFO("----------------------------------------");
+      RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
       printUSBInterfaceDetails(devices[i]);
-      ROS_INFO("----------------------------------------");
+      RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
     }
   }
 
   if (numberOfDevices == 0)
   {
-    ROS_INFO("LIBUSB - No SICK TIM device connected.");
+    RCLCPP_INFO(node_->get_logger(), "LIBUSB - No SICK TIM device connected.");
   }
 }
 
@@ -263,8 +264,8 @@ void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libu
 int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
 {
   if (device_handle_ == NULL) {
-    ROS_ERROR("LIBUSB - device not open");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - device not open.");
+    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - device not open");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - device not open.");
     return ExitError;
   }
 
@@ -274,7 +275,7 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
   /*
    * Write a SOPAS variable read request to the device.
    */
-  ROS_DEBUG("LIBUSB - Write data... %s", request);
+  RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Write data... %s", request);
 
   int actual_length = 0;
   int requestLength = strlen(request);
@@ -282,8 +283,8 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
                                 &actual_length, 0);
   if (result != 0 || actual_length != requestLength)
   {
-    ROS_ERROR("LIBUSB - Write Error: %i.", result);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Write Error.");
+    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Write Error: %i.", result);
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Write Error.");
     return result;
   }
 
@@ -293,13 +294,13 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
   result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length, USB_TIMEOUT);
   if (result != 0)
   {
-    ROS_ERROR("LIBUSB - Read Error: %i.", result);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
+    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Read Error: %i.", result);
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
     return result;
   }
 
   receiveBuffer[actual_length] = 0;
-  ROS_DEBUG("LIBUSB - Read data...  %s", receiveBuffer);
+  RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Read data...  %s", receiveBuffer);
   if(reply) {
       reply->clear();
       for(int i = 0; i < actual_length; i++) {
@@ -321,8 +322,8 @@ int SickTimCommonUsb::init_device()
   int result = libusb_init(&ctx_);
   if (result != 0)
   {
-    ROS_ERROR("LIBUSB - Initialization failed with the following error code: %i.", result);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Initialization failed.");
+    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Initialization failed with the following error code: %i.", result);
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Initialization failed.");
     return ExitError;
   }
 
@@ -350,14 +351,14 @@ int SickTimCommonUsb::init_device()
    */
   if (numberOfDevices_ == 0)
   {
-    ROS_ERROR("No SICK TiM devices connected!");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "No SICK TiM devices connected!");
+    RCLCPP_ERROR(node_->get_logger(), "No SICK TiM devices connected!");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "No SICK TiM devices connected!");
     return ExitError;
   }
   else if (numberOfDevices_ <= device_number_)
   {
-    ROS_ERROR("Device number %d too high, only %zu SICK TiM scanners connected", device_number_, numberOfDevices_);
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "Chosen SICK TiM scanner not connected");
+    RCLCPP_ERROR(node_->get_logger(), "Device number %d too high, only %zu SICK TiM scanners connected", device_number_, numberOfDevices_);
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Chosen SICK TiM scanner not connected");
 	return ExitError;
   }
 
@@ -372,21 +373,21 @@ int SickTimCommonUsb::init_device()
   libusb_open(devices_[device_number_], &device_handle_);
   if (device_handle_ == NULL)
   {
-    ROS_ERROR("LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
+    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
     return ExitError;
   }
   else
   {
-    ROS_DEBUG("LIBUSB - Device opened");
+    RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Device opened");
   }
 
   if (libusb_kernel_driver_active(device_handle_, 0) == 1)
   {
-    ROS_DEBUG("LIBUSB - Kernel driver active");
+    RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Kernel driver active");
     if (libusb_detach_kernel_driver(device_handle_, 0) == 0)
     {
-      ROS_DEBUG("LIBUSB - Kernel driver detached!");
+      RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Kernel driver detached!");
     }
   }
 
@@ -396,13 +397,13 @@ int SickTimCommonUsb::init_device()
   result = libusb_claim_interface(device_handle_, 0);
   if (result < 0)
   {
-    ROS_ERROR("LIBUSB - Cannot claim interface");
-    diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Cannot claim interface.");
+    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Cannot claim interface");
+    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Cannot claim interface.");
     return ExitError;
   }
   else
   {
-    ROS_INFO("LIBUSB - Claimed interface");
+    RCLCPP_INFO(node_->get_logger(), "LIBUSB - Claimed interface");
   }
 
   return ExitSuccess;
@@ -416,15 +417,15 @@ int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize,
   {
     if (result == LIBUSB_ERROR_TIMEOUT)
     {
-      ROS_WARN("LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
-      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
+      RCLCPP_WARN(node_->get_logger(), "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
+      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
       *actual_length = 0;
       return ExitSuccess; // return success with size 0 to continue looping
     }
     else
     {
-      ROS_ERROR("LIBUSB - Read Error: %i.", result);
-      diagnostics_.broadcast(diagnostic_msgs::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
+      RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Read Error: %i.", result);
+      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
       return result; // return failure to exit node
     }
   }
