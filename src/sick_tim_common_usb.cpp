@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2013, Osnabrück University
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of Osnabrück University nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -36,15 +36,19 @@
  *
  */
 
-#include <sick_tim/sick_tim_common_usb.h>
+#include <sick_tim/sick_tim_common_usb.hpp>
 
 namespace sick_tim
 {
 
-SickTimCommonUsb::SickTimCommonUsb(AbstractParser* parser, int device_number, rclcpp::Node::SharedPtr node,  diagnostic_updater::Updater * diagnostics) : SickTimCommon(parser, node, diagnostics),
-    ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL), device_number_(device_number)
+SickTimCommonUsb::SickTimCommonUsb(
+  AbstractParser * parser, int device_number,
+  rclcpp::Node::SharedPtr node,
+  diagnostic_updater::Updater * diagnostics)
+: SickTimCommon(parser, node, diagnostics),
+  ctx_(NULL), numberOfDevices_(0), devices_(NULL), device_handle_(NULL), device_number_(
+    device_number)
 {
-  
 }
 
 SickTimCommonUsb::~SickTimCommonUsb()
@@ -56,16 +60,16 @@ SickTimCommonUsb::~SickTimCommonUsb()
 int SickTimCommonUsb::close_device()
 {
   int result = 0;
-  if (device_handle_ != NULL)
-  {
+  if (device_handle_ != NULL) {
     /*
      * Release the interface
      */
     result = libusb_release_interface(device_handle_, 0);
-    if (result != 0)
+    if (result != 0) {
       printf("LIBUSB - Cannot Release Interface!\n");
-    else
+    } else {
       printf("LIBUSB - Released Interface.\n");
+    }
 
     /*
      * Close the device handle.
@@ -88,12 +92,13 @@ int SickTimCommonUsb::close_device()
 /**
  * Returns a list of USB devices currently attached to the system and matching the given vendorID and productID.
  */
-ssize_t SickTimCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendorID, uint16_t productID,
-                                             libusb_device ***list)
+ssize_t SickTimCommonUsb::getSOPASDeviceList(
+  libusb_context * ctx, uint16_t vendorID, uint16_t productID,
+  libusb_device *** list)
 {
-  libusb_device **resultDevices = NULL;
+  libusb_device ** resultDevices = NULL;
   ssize_t numberOfResultDevices = 0;
-  libusb_device **devices;
+  libusb_device ** devices;
 
   /*
    * Get a list of all USB devices connected.
@@ -103,30 +108,32 @@ ssize_t SickTimCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendo
   /*
    * Iterate through the list of the connected USB devices and search for devices with the given vendorID and productID.
    */
-  for (ssize_t i = 0; i < numberOfDevices; i++)
-  {
+  for (ssize_t i = 0; i < numberOfDevices; i++) {
     struct libusb_device_descriptor desc;
     int result = libusb_get_device_descriptor(devices[i], &desc);
-    if (result < 0)
-    {
+    if (result < 0) {
       RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Failed to get device descriptor");
-      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
+      diagnostics_->broadcast(
+        diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+        "LIBUSB - Failed to get device descriptor.");
       continue;
     }
 
-    if (desc.idVendor == vendorID && desc.idProduct == 0x5001)
-    {
+    if (desc.idVendor == vendorID && desc.idProduct == 0x5001) {
       /*
        * Add the matching device to the function result list and increase the device reference count.
        */
-      resultDevices = (libusb_device **)realloc(resultDevices, sizeof(libusb_device *) * (numberOfResultDevices + 2));
-      if (resultDevices == NULL)
-      {
-        RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Failed to allocate memory for the device result list.");
-        diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Failed to allocate memory for the device result list.");
-      }
-      else
-      {
+      resultDevices =
+        reinterpret_cast<libusb_device **>(realloc(
+          resultDevices,
+          sizeof(libusb_device *) * (numberOfResultDevices + 2)));
+      if (resultDevices == NULL) {
+        RCLCPP_ERROR(
+          node_->get_logger(), "LIBUSB - Failed to allocate memory for the device result list.");
+        diagnostics_->broadcast(
+          diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+          "LIBUSB - Failed to allocate memory for the device result list.");
+      } else {
         resultDevices[numberOfResultDevices] = devices[i];
         resultDevices[numberOfResultDevices + 1] = NULL;
         libusb_ref_device(devices[i]);
@@ -150,15 +157,17 @@ ssize_t SickTimCommonUsb::getSOPASDeviceList(libusb_context *ctx, uint16_t vendo
 /*
  * Free the list of devices obtained from the function 'getSOPASDeviceList'.
  */
-void SickTimCommonUsb::freeSOPASDeviceList(libusb_device **list)
+void SickTimCommonUsb::freeSOPASDeviceList(libusb_device ** list)
 {
-  if (!list)
+  if (!list) {
     return;
+  }
 
   int i = 0;
-  struct libusb_device *dev;
-  while ((dev = list[i++]) != NULL)
+  struct libusb_device * dev;
+  while ((dev = list[i++]) != NULL) {
     libusb_unref_device(dev);
+  }
 
   free(list);
 }
@@ -176,9 +185,9 @@ void SickTimCommonUsb::printUSBDeviceDetails(struct libusb_device_descriptor des
 /*
  * Iterate through the the interfaces of the USB device and print out the interface details to the console.
  */
-void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device* device)
+void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device * device)
 {
-  struct libusb_config_descriptor *config;
+  struct libusb_config_descriptor * config;
 
   /*
    * Get a USB configuration descriptor based on its index.
@@ -188,33 +197,33 @@ void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device* device)
   RCLCPP_INFO(node_->get_logger(), "Interfaces: %i", (int)config->bNumInterfaces);
   RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
 
-  const struct libusb_interface *interface;
-  const struct libusb_interface_descriptor *interface_descriptor;
-  const struct libusb_endpoint_descriptor *endpoint_descriptor;
+  const struct libusb_interface * interface;
+  const struct libusb_interface_descriptor * interface_descriptor;
+  const struct libusb_endpoint_descriptor * endpoint_descriptor;
 
   int i, j, k;
-  for (i = 0; i < config->bNumInterfaces; i++)
-  {
+  for (i = 0; i < config->bNumInterfaces; i++) {
     interface = &config->interface[i];
     RCLCPP_INFO(node_->get_logger(), "Number of alternate settings: %i", interface->num_altsetting);
 
-    for (j = 0; j < interface->num_altsetting; j++)
-    {
+    for (j = 0; j < interface->num_altsetting; j++) {
       interface_descriptor = &interface->altsetting[j];
 
-      RCLCPP_INFO(node_->get_logger(), "Interface number: %i", (int)interface_descriptor->bInterfaceNumber);
-      RCLCPP_INFO(node_->get_logger(), "Number of endpoints: %i", (int)interface_descriptor->bNumEndpoints);
+      RCLCPP_INFO(
+        node_->get_logger(), "Interface number: %i", (int)interface_descriptor->bInterfaceNumber);
+      RCLCPP_INFO(
+        node_->get_logger(), "Number of endpoints: %i", (int)interface_descriptor->bNumEndpoints);
 
-      for (k = 0; k < interface_descriptor->bNumEndpoints; k++)
-      {
+      for (k = 0; k < interface_descriptor->bNumEndpoints; k++) {
         endpoint_descriptor = &interface_descriptor->endpoint[k];
-        RCLCPP_INFO(node_->get_logger(), "Descriptor Type: %i", endpoint_descriptor->bDescriptorType);
+        RCLCPP_INFO(
+          node_->get_logger(), "Descriptor Type: %i",
+          endpoint_descriptor->bDescriptorType);
         RCLCPP_INFO(node_->get_logger(), "EP Address: %i", endpoint_descriptor->bEndpointAddress);
       }
     }
 
-    if (i < config->bNumInterfaces - 1)
-    {
+    if (i < config->bNumInterfaces - 1) {
       RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
     }
   }
@@ -228,21 +237,22 @@ void SickTimCommonUsb::printUSBInterfaceDetails(libusb_device* device)
 /**
  * Print the USB device information of the connected TIM3xx devices to the console.
  */
-void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libusb_device** devices)
+void SickTimCommonUsb::printSOPASDeviceInformation(
+  ssize_t numberOfDevices,
+  libusb_device ** devices)
 {
   ssize_t i;
-  for (i = 0; i < numberOfDevices; i++)
-  {
+  for (i = 0; i < numberOfDevices; i++) {
     struct libusb_device_descriptor desc;
     int result = libusb_get_device_descriptor(devices[i], &desc);
-    if (result < 0)
-    {
+    if (result < 0) {
       RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Failed to get device descriptor");
-      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Failed to get device descriptor.");
+      diagnostics_->broadcast(
+        diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+        "LIBUSB - Failed to get device descriptor.");
       continue;
     }
-    if (result == 0)
-    {
+    if (result == 0) {
       RCLCPP_INFO(node_->get_logger(), "SICK AG - TIM3XX - [%zu]", (i + 1));
       RCLCPP_INFO(node_->get_logger(), "----------------------------------------");
       printUSBDeviceDetails(desc);
@@ -252,8 +262,7 @@ void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libu
     }
   }
 
-  if (numberOfDevices == 0)
-  {
+  if (numberOfDevices == 0) {
     RCLCPP_INFO(node_->get_logger(), "LIBUSB - No SICK TIM device connected.");
   }
 }
@@ -261,11 +270,13 @@ void SickTimCommonUsb::printSOPASDeviceInformation(ssize_t numberOfDevices, libu
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
+int SickTimCommonUsb::sendSOPASCommand(const char * request, std::vector<unsigned char> * reply)
 {
   if (device_handle_ == NULL) {
     RCLCPP_ERROR(node_->get_logger(), "LIBUSB - device not open");
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - device not open.");
+    diagnostics_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "LIBUSB - device not open.");
     return ExitError;
   }
 
@@ -279,10 +290,10 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
 
   int actual_length = 0;
   int requestLength = strlen(request);
-  result = libusb_bulk_transfer(device_handle_, (2 | LIBUSB_ENDPOINT_OUT), (unsigned char*)request, requestLength,
-                                &actual_length, 0);
-  if (result != 0 || actual_length != requestLength)
-  {
+  result = libusb_bulk_transfer(
+    device_handle_, (2 | LIBUSB_ENDPOINT_OUT), (unsigned char *)request, requestLength,
+    &actual_length, 0);
+  if (result != 0 || actual_length != requestLength) {
     RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Write Error: %i.", result);
     diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Write Error.");
     return result;
@@ -291,9 +302,10 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
   /*
    * Read the SOPAS device response with the given timeout.
    */
-  result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535, &actual_length, USB_TIMEOUT);
-  if (result != 0)
-  {
+  result = libusb_bulk_transfer(
+    device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, 65535,
+    &actual_length, USB_TIMEOUT);
+  if (result != 0) {
     RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Read Error: %i.", result);
     diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
     return result;
@@ -301,11 +313,11 @@ int SickTimCommonUsb::sendSOPASCommand(const char* request, std::vector<unsigned
 
   receiveBuffer[actual_length] = 0;
   RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Read data...  %s", receiveBuffer);
-  if(reply) {
-      reply->clear();
-      for(int i = 0; i < actual_length; i++) {
-          reply->push_back(receiveBuffer[i]);
-      }
+  if (reply) {
+    reply->clear();
+    for (int i = 0; i < actual_length; i++) {
+      reply->push_back(receiveBuffer[i]);
+    }
   }
 
   return result;
@@ -320,10 +332,13 @@ int SickTimCommonUsb::init_device()
    * Create and initialize a new LIBUSB session.
    */
   int result = libusb_init(&ctx_);
-  if (result != 0)
-  {
-    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Initialization failed with the following error code: %i.", result);
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Initialization failed.");
+  if (result != 0) {
+    RCLCPP_ERROR(
+      node_->get_logger(), "LIBUSB - Initialization failed with the following error code: %i.",
+      result);
+    diagnostics_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "LIBUSB - Initialization failed.");
     return ExitError;
   }
 
@@ -349,17 +364,20 @@ int SickTimCommonUsb::init_device()
   /*
    * If available, open the first SICK TIM3xx device.
    */
-  if (numberOfDevices_ == 0)
-  {
+  if (numberOfDevices_ == 0) {
     RCLCPP_ERROR(node_->get_logger(), "No SICK TiM devices connected!");
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "No SICK TiM devices connected!");
+    diagnostics_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "No SICK TiM devices connected!");
     return ExitError;
-  }
-  else if (numberOfDevices_ <= device_number_)
-  {
-    RCLCPP_ERROR(node_->get_logger(), "Device number %d too high, only %zu SICK TiM scanners connected", device_number_, numberOfDevices_);
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "Chosen SICK TiM scanner not connected");
-	return ExitError;
+  } else if (numberOfDevices_ <= device_number_) {
+    RCLCPP_ERROR(
+      node_->get_logger(), "Device number %d too high, only %zu SICK TiM scanners connected", device_number_,
+      numberOfDevices_);
+    diagnostics_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "Chosen SICK TiM scanner not connected");
+    return ExitError;
   }
 
   /*
@@ -371,22 +389,21 @@ int SickTimCommonUsb::init_device()
    * Open the device handle and detach all kernel drivers.
    */
   libusb_open(devices_[device_number_], &device_handle_);
-  if (device_handle_ == NULL)
-  {
-    RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
+  if (device_handle_ == NULL) {
+    RCLCPP_ERROR(
+      node_->get_logger(),
+      "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
+    diagnostics_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "LIBUSB - Cannot open device (permission denied?); please read sick_tim/README.md");
     return ExitError;
-  }
-  else
-  {
+  } else {
     RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Device opened");
   }
 
-  if (libusb_kernel_driver_active(device_handle_, 0) == 1)
-  {
+  if (libusb_kernel_driver_active(device_handle_, 0) == 1) {
     RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Kernel driver active");
-    if (libusb_detach_kernel_driver(device_handle_, 0) == 0)
-    {
+    if (libusb_detach_kernel_driver(device_handle_, 0) == 0) {
       RCLCPP_DEBUG(node_->get_logger(), "LIBUSB - Kernel driver detached!");
     }
   }
@@ -395,37 +412,39 @@ int SickTimCommonUsb::init_device()
    * Claim the interface 0
    */
   result = libusb_claim_interface(device_handle_, 0);
-  if (result < 0)
-  {
+  if (result < 0) {
     RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Cannot claim interface");
-    diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Cannot claim interface.");
+    diagnostics_->broadcast(
+      diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+      "LIBUSB - Cannot claim interface.");
     return ExitError;
-  }
-  else
-  {
+  } else {
     RCLCPP_INFO(node_->get_logger(), "LIBUSB - Claimed interface");
   }
 
   return ExitSuccess;
 }
 
-int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
+int SickTimCommonUsb::get_datagram(
+  unsigned char * receiveBuffer, int bufferSize,
+  int * actual_length)
 {
-  int result = libusb_bulk_transfer(device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, bufferSize - 1, actual_length,
-                                USB_TIMEOUT);   // read up to bufferSize - 1 to leave space for \0
-  if (result != 0)
-  {
-    if (result == LIBUSB_ERROR_TIMEOUT)
-    {
+  int result = libusb_bulk_transfer(
+    device_handle_, (1 | LIBUSB_ENDPOINT_IN), receiveBuffer, bufferSize - 1, actual_length,
+    USB_TIMEOUT);                               // read up to bufferSize - 1 to leave space for \0
+  if (result != 0) {
+    if (result == LIBUSB_ERROR_TIMEOUT) {
       RCLCPP_WARN(node_->get_logger(), "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
-      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
+      diagnostics_->broadcast(
+        diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+        "LIBUSB - Read Error: LIBUSB_ERROR_TIMEOUT.");
       *actual_length = 0;
       return ExitSuccess; // return success with size 0 to continue looping
-    }
-    else
-    {
+    } else {
       RCLCPP_ERROR(node_->get_logger(), "LIBUSB - Read Error: %i.", result);
-      diagnostics_->broadcast(diagnostic_msgs::msg::DiagnosticStatus::ERROR, "LIBUSB - Read Error.");
+      diagnostics_->broadcast(
+        diagnostic_msgs::msg::DiagnosticStatus::ERROR,
+        "LIBUSB - Read Error.");
       return result; // return failure to exit node
     }
   }
@@ -434,4 +453,4 @@ int SickTimCommonUsb::get_datagram(unsigned char* receiveBuffer, int bufferSize,
   return ExitSuccess;
 }
 
-} /* namespace sick_tim */
+} // namespace sick_tim

@@ -33,13 +33,13 @@
  *
  */
 
-#include <sick_tim/sick_tim_common_usb.h>
-#include <sick_tim/sick_tim_common_tcp.h>
-#include <sick_tim/sick_tim_common_mockup.h>
-#include <sick_tim/sick_tim551_2050001_parser.h>
+#include <sick_tim/sick_tim_common_usb.hpp>
+#include <sick_tim/sick_tim_common_tcp.hpp>
+#include <sick_tim/sick_tim_common_mockup.hpp>
+#include <sick_tim/sick_tim551_2050001_parser.hpp>
 
 
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<rclcpp::Node>("sick_driver");
@@ -51,9 +51,8 @@ int main(int argc, char **argv)
   bool useTCP = false;
   std::string hostname;
   hostname = node->declare_parameter("hostname", "");
-  if(hostname != "")
-  {
-      useTCP = true;
+  if (hostname != "") {
+    useTCP = true;
   }
   std::string port;
   port = node->declare_parameter("port", "2112");
@@ -76,34 +75,30 @@ int main(int argc, char **argv)
   node->declare_parameter("time_offset", -0.001);
   node->declare_parameter("auto_reboot", true);
 
-  sick_tim::SickTim5512050001Parser* parser = new sick_tim::SickTim5512050001Parser(node->shared_from_this());
+  sick_tim::SickTim5512050001Parser * parser = new sick_tim::SickTim5512050001Parser(
+    node->shared_from_this());
 
   diagnostic_updater::Updater * diagnostics = new diagnostic_updater::Updater(node, 10.0);
   diagnostics->setHardwareID("none");   // set from device after connection
 
   double param;
-  if (node->get_parameter("range_min", param))
-  {
+  if (node->get_parameter("range_min", param)) {
     parser->set_range_min(param);
   }
-  if (node->get_parameter("range_max", param))
-  {
+  if (node->get_parameter("range_max", param)) {
     parser->set_range_max(param);
   }
-  if (node->get_parameter("time_increment", param))
-  {
+  if (node->get_parameter("time_increment", param)) {
     parser->set_time_increment(param);
   }
 
-  sick_tim::SickTimCommon* s = nullptr;
+  sick_tim::SickTimCommon * s = nullptr;
   rclcpp::spin_some(node);
 
   int result = sick_tim::ExitError;
-  while (rclcpp::ok())
-  {
+  while (rclcpp::ok()) {
     // Atempt to connect/reconnect
-    if (subscribe_datagram)
-    {
+    if (subscribe_datagram) {
       s = new sick_tim::SickTimCommonMockup(parser, node, diagnostics);
     } else if (useTCP) {
       s = new sick_tim::SickTimCommonTcp(hostname, port, timelimit, parser, node, diagnostics);
@@ -111,17 +106,19 @@ int main(int argc, char **argv)
       s = new sick_tim::SickTimCommonUsb(parser, device_number, node, diagnostics);
     }
     result = s->init();
-    while(rclcpp::ok() && (result == sick_tim::ExitSuccess)){
+    while (rclcpp::ok() && (result == sick_tim::ExitSuccess)) {
       result = s->loopOnce();
       rclcpp::spin_some(node);
     }
     delete s;
 
-    if (result == sick_tim::ExitFatal)
+    if (result == sick_tim::ExitFatal) {
       return result;
+    }
 
-    if (rclcpp::ok() && !subscribe_datagram && !useTCP)
+    if (rclcpp::ok() && !subscribe_datagram && !useTCP) {
       rclcpp::sleep_for(std::chrono::seconds(1)); // Only attempt USB connections once per second
+    }
   }
 
   delete parser;

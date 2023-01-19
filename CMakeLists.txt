@@ -53,9 +53,9 @@ install(TARGETS
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME})
 
-install(FILES include/${PROJECT_NAME}/abstract_parser.h
-              include/${PROJECT_NAME}/sick_tim_common.h
-              include/${PROJECT_NAME}/sick_tim_common_usb.h
+install(FILES include/${PROJECT_NAME}/abstract_parser.hpp
+              include/${PROJECT_NAME}/sick_tim_common.hpp
+              include/${PROJECT_NAME}/sick_tim_common_usb.hpp
     DESTINATION include/${PROJECT_NAME})
 
 install(DIRECTORY launch/
@@ -72,9 +72,12 @@ install(DIRECTORY urdf/
 
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(ament_cmake)
-    
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+  # TODO: it is not clear yet which license to use
+  #  given that this is a derived product from Stratom Inc.
+  set(ament_cmake_copyright_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 
