@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2013, Osnabrück University
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of Osnabrück University nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -36,15 +36,16 @@
  *
  */
 
-#ifndef SICK_TIM3XX_COMMON_H_
-#define SICK_TIM3XX_COMMON_H_
+#ifndef SICK_TIM__SICK_TIM_COMMON_HPP_
+#define SICK_TIM__SICK_TIM_COMMON_HPP_
 
-#include <cassert>
-#include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 #include <string.h>
+#include <cassert>
+#include <memory>
+#include <chrono>
+#include <string>
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
@@ -59,7 +60,7 @@
 // #include <dynamic_reconfigure/server.h>
 // #include <sick_tim/SickTimConfig.h>
 
-#include "abstract_parser.h"
+#include "abstract_parser.hpp"
 
 namespace sick_tim
 {
@@ -67,7 +68,9 @@ namespace sick_tim
 class SickTimCommon
 {
 public:
-  SickTimCommon(AbstractParser* parser, rclcpp::Node::SharedPtr node,  diagnostic_updater::Updater * diagnostics);
+  SickTimCommon(
+    AbstractParser * parser, rclcpp::Node::SharedPtr node,
+    diagnostic_updater::Updater * diagnostics);
   virtual ~SickTimCommon();
   virtual int init();
   virtual int loopOnce();
@@ -75,7 +78,7 @@ public:
   // void check_angle_range(SickTimConfig &conf);
   // void update_config(sick_tim::SickTimConfig &new_config, uint32_t level = 0);
 
-  double get_expected_frequency() const { return expectedFrequency_; }
+  double get_expected_frequency() const {return expectedFrequency_;}
 
   /// Send a SOPAS command to the scanner that should cause a soft reset
   /**
@@ -94,7 +97,7 @@ protected:
    * \param [in] request the command to send.
    * \param [out] reply if not NULL, will be filled with the reply package to the command.
    */
-  virtual int sendSOPASCommand(const char* request, std::vector<unsigned char> * reply) = 0;
+  virtual int sendSOPASCommand(const char * request, std::vector<unsigned char> * reply) = 0;
 
   /// Read a datagram from the device.
   /**
@@ -102,14 +105,14 @@ protected:
    * \param [in] bufferSize max data size to write to buffer (result should be 0 terminated)
    * \param [out] actual_length the actual amount of data written
    */
-  virtual int get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length) = 0;
+  virtual int get_datagram(unsigned char * receiveBuffer, int bufferSize, int * actual_length) = 0;
 
   /// Converts reply from sendSOPASCommand to string
   /**
    * \param [in] reply reply from sendSOPASCommand
    * \returns reply as string with special characters stripped out
    */
-  static std::string replyToString(const std::vector<unsigned char> &reply);
+  static std::string replyToString(const std::vector<unsigned char> & reply);
 
   bool isCompatibleDevice(const std::string identStr) const;
 
@@ -120,7 +123,7 @@ protected:
   rclcpp::Publisher<example_interfaces::msg::String>::SharedPtr datagram_pub_;
 
   // Diagnostics
-  diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::LaserScan>* diagnosticPub_;
+  diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::LaserScan> * diagnosticPub_;
   double expectedFrequency_;
 
   // Node interface
@@ -137,8 +140,8 @@ private:
   //dynamic_reconfigure::Server<sick_tim::SickTimConfig> dynamic_reconfigure_server_;
 
   // Parser
-  AbstractParser* parser_;
+  AbstractParser * parser_;
 };
 
-} /* namespace sick_tim */
-#endif /* SICK_TIM3XX_COMMON_H_ */
+}  // namespace sick_tim
+#endif  // SICK_TIM__SICK_TIM_COMMON_HPP_
