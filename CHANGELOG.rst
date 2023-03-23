@@ -1,6 +1,24 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Forthcoming
+-----------------
+* Fix warnings
+* Follow ROS2 linters conventions
+* Add Dockerfile-noetic
+* Making the sick tim parser use a passed in nodes clock
+* fixing timestamping on laser scan
+* Spinning node in right place to prevent breaking
+* Removing header file from non reconfig params branch
+* Working without reconfigurable parameters
+* only main changes
+* Working tcp sick driver
+* Running untested tcp and usb launch scripts
+* Node running, need to correct parameter client and callback setup
+* ROS1 working, only builds our sensor
+* Update Dockerfiles to new ros:*-ros-core images
+* Set cmake_policy CMP0048 to fix warning
+* Contributors: AGVR Jetson, Carles Lopez Parera, Martin Günther, Ryan DelGizzi, Zack Allen
 
 0.0.17 (2020-05-25)
 -------------------
