@@ -229,7 +229,7 @@ int SickTim5512050001Parser::parse_datagram(
 
   // 22: Scaling offset (00000000) -- always 0
   // 23: Starting angle (FFF92230)
-  int starting_angle = -1;
+  int32_t starting_angle = -1;
   sscanf(fields[23], "%x", reinterpret_cast<uint32_t *>(&starting_angle));
   msg.angle_min = (starting_angle / 10000.0) / 180.0 * M_PI - M_PI / 2;
   // ROS_DEBUG("starting_angle: %d, angle_min: %f", starting_angle, msg.angle_min);

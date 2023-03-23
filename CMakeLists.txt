@@ -27,7 +27,7 @@ pkg_check_modules(libusb libusb-1.0)
 
 find_package(Boost REQUIRED COMPONENTS system)
 
-include_directories(include ${libusb_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+include_directories(include SYSTEM ${libusb_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_library(sick_tim_3xx
     src/sick_tim_common.cpp
