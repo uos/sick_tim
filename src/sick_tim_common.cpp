@@ -47,7 +47,7 @@ namespace sick_tim
 SickTimCommon::SickTimCommon(
   AbstractParser * parser, rclcpp::Node::SharedPtr node,
   diagnostic_updater::Updater * diagnostics)
-: diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser), diagnostics_(diagnostics)
+: diagnostics_(diagnostics), diagnosticPub_(NULL), expectedFrequency_(15.0), parser_(parser)
   // FIXME All Tims have 15Hz?
 {
   node_ = node;

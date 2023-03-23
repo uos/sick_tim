@@ -62,7 +62,7 @@ int SickTimCommonMockup::close_device()
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTimCommonMockup::sendSOPASCommand(const char * request, std::vector<unsigned char> * reply)
+int SickTimCommonMockup::sendSOPASCommand(const char * /*request*/, std::vector<unsigned char> * /*reply*/)
 {
   RCLCPP_ERROR(node_->get_logger(), "Mockup - sendSOPASCommand(), this should never be called");
   return ExitError;

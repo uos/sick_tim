@@ -93,7 +93,7 @@ int SickTimCommonUsb::close_device()
  * Returns a list of USB devices currently attached to the system and matching the given vendorID and productID.
  */
 ssize_t SickTimCommonUsb::getSOPASDeviceList(
-  libusb_context * ctx, uint16_t vendorID, uint16_t productID,
+  libusb_context * ctx, uint16_t vendorID, uint16_t /*productID*/,
   libusb_device *** list)
 {
   libusb_device ** resultDevices = NULL;

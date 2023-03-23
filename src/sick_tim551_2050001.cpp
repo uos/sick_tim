@@ -60,8 +60,8 @@ int main(int argc, char ** argv)
   int timelimit;
   timelimit = node->declare_parameter("timelimit", 5);
 
-  bool subscribe_datagram;
-  int device_number;
+  bool subscribe_datagram = false;
+  int device_number = 0;
   node->declare_parameter("subscribe_datagram", false);
   node->declare_parameter("device_number", 0);
   // datagram publisher (only for debug)
