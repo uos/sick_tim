@@ -2,8 +2,8 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.0.18 (2023-05-02)
+-------------------
 * Add Dockerfile-noetic
 * Fix Dockerfile-kinetic
 * README: Change http -> https
