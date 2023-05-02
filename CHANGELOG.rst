@@ -2,6 +2,15 @@
 Changelog for package sick_tim
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add Dockerfile-noetic
+* Fix Dockerfile-kinetic
+* README: Change http -> https
+* Update Dockerfiles to new ros:*-ros-core images
+* Set cmake_policy CMP0048 to fix warning
+* Contributors: Martin Günther
+
 0.0.17 (2020-05-25)
 -------------------
 * Switch to non-deprecated node in launch files
