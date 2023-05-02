@@ -33,14 +33,20 @@
  *
  */
 
-#include <sick_tim/sick_tim_common_mockup.h>
+#include <sick_tim/sick_tim_common_mockup.hpp>
 
 namespace sick_tim
 {
 
-SickTimCommonMockup::SickTimCommonMockup(AbstractParser* parser) : SickTimCommon(parser)
+SickTimCommonMockup::SickTimCommonMockup(
+  AbstractParser * parser, rclcpp::Node::SharedPtr node,
+  diagnostic_updater::Updater * diagnostics)
+: SickTimCommon(parser, node, diagnostics)
 {
-  sub_ = nh_.subscribe("datagram", 1, &SickTimCommonMockup::datagramCB, this);
+  sub_ =
+    node_->create_subscription<example_interfaces::msg::String>(
+    "datagram", 1,
+    std::bind(&SickTimCommonMockup::datagramCB, this, std::placeholders::_1));
 }
 
 SickTimCommonMockup::~SickTimCommonMockup()
@@ -49,16 +55,18 @@ SickTimCommonMockup::~SickTimCommonMockup()
 
 int SickTimCommonMockup::close_device()
 {
-  ROS_INFO("Mockup - close_device()");
+  RCLCPP_INFO(node_->get_logger(), "Mockup - close_device()");
   return 0;
 }
 
 /**
  * Send a SOPAS command to the device and print out the response to the console.
  */
-int SickTimCommonMockup::sendSOPASCommand(const char* request, std::vector<unsigned char> * reply)
+int SickTimCommonMockup::sendSOPASCommand(
+  const char * /*request*/,
+  std::vector<unsigned char> * /*reply*/)
 {
-  ROS_ERROR("Mockup - sendSOPASCommand(), this should never be called");
+  RCLCPP_ERROR(node_->get_logger(), "Mockup - sendSOPASCommand(), this should never be called");
   return ExitError;
 }
 
@@ -67,7 +75,7 @@ int SickTimCommonMockup::sendSOPASCommand(const char* request, std::vector<unsig
  */
 int SickTimCommonMockup::init_device()
 {
-  ROS_INFO("Mockup - init_device()");
+  RCLCPP_INFO(node_->get_logger(), "Mockup - init_device()");
   return ExitSuccess;
 }
 
@@ -76,22 +84,24 @@ int SickTimCommonMockup::init_device()
  */
 int SickTimCommonMockup::init_scanner()
 {
-  ROS_INFO("Mockup - init_scanner()");
+  RCLCPP_INFO(node_->get_logger(), "Mockup - init_scanner()");
   return ExitSuccess;
 }
 
-int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSize, int* actual_length)
+int SickTimCommonMockup::get_datagram(
+  unsigned char * receiveBuffer, int bufferSize,
+  int * actual_length)
 {
-  ROS_DEBUG("Mockup - get_datagram()");
+  RCLCPP_DEBUG(node_->get_logger(), "Mockup - get_datagram()");
 
   // wait for next datagram
-  while(!datagram_msg_)
-  {
-    if (!ros::ok())
+  while (!datagram_msg_) {
+    if (!rclcpp::ok()) {
       return ExitError;
+    }
 
-    ros::Duration(0.01).sleep();
-    ros::spinOnce();
+    rclcpp::sleep_for(std::chrono::milliseconds(10));
+    rclcpp::spin_some(node_->get_node_base_interface());
   }
 
   // copy datagram to receiveBuffer
@@ -100,9 +110,8 @@ int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSi
   *actual_length = datagram_msg_->data.length();
   datagram_msg_.reset();
 
-  if (bufferSize < *actual_length + 1)
-  {
-    ROS_ERROR("Mockup - Buffer too small!");
+  if (bufferSize < *actual_length + 1) {
+    RCLCPP_ERROR(node_->get_logger(), "Mockup - Buffer too small!");
     return ExitError;
   }
 
@@ -111,12 +120,13 @@ int SickTimCommonMockup::get_datagram(unsigned char* receiveBuffer, int bufferSi
   return ExitSuccess;
 }
 
-void SickTimCommonMockup::datagramCB(const std_msgs::String::ConstPtr &msg)
+void SickTimCommonMockup::datagramCB(const example_interfaces::msg::String::SharedPtr msg)
 {
-if (datagram_msg_)
-  ROS_WARN("Mockup - dropping datagram message");
+  if (datagram_msg_) {
+    RCLCPP_WARN(node_->get_logger(), "Mockup - dropping datagram message");
+  }
 
-datagram_msg_ = msg;
+  datagram_msg_ = msg;
 }
 
-} /* namespace sick_tim */
+} // namespace sick_tim

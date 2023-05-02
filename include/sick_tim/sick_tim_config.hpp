@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017, Osnabrück University
+ * Copyright (C) 2013, Osnabrück University
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,21 +26,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *      Author:
- *         Sebastian Pütz <spuetz@uos.de>
+ *  Created on: 24.05.2012
+ *
+ *      Authors:
+ *         Jochen Sprickerhof <jochen@sprickerhof.de>
+ *         Martin Günther <mguenthe@uos.de>
+ *
+ * Based on the TiM communication example by SICK AG.
  *
  */
 
-#include "sick_tim/scan_and_cloud_parser.h"
+#ifndef SICK_TIM__SICK_TIM_CONFIG_HPP_
+#define SICK_TIM__SICK_TIM_CONFIG_HPP_
+
+#include <string>
 namespace sick_tim
 {
-  ScanAndCloudParser::ScanAndCloudParser(){};
-  ScanAndCloudParser::~ScanAndCloudParser(){};
 
-  int ScanAndCloudParser::parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &msg)
-  {
-    sensor_msgs::PointCloud2 cloud;
-    return parse_datagram(datagram, datagram_length, config, msg, cloud);
-  }
-} /* namespace sick_tim */
+// Dynamic Reconfigure
+struct SickTimConfig
+{
+  bool publish_datagram;
+  double min_ang;
+  double max_ang;
+  bool intensity;
+  int skip;
+  std::string frame_id;
+  double time_offset;
+  bool auto_reboot;
+};
+
+}  // namespace sick_tim
+#endif  // SICK_TIM__SICK_TIM_CONFIG_HPP_

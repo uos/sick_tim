@@ -1,10 +1,10 @@
 /*
- * Copyright (C) 2017, Osnabrück University
+ * Copyright (C) 2013, Osnabrück University
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
@@ -13,7 +13,7 @@
  *     * Neither the name of Osnabrück University nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -26,33 +26,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *      Author: Sebastian Pütz <spuetz@uos.de>
+ *  Created on: 15.08.2013
+ *
+ *      Author: Martin Günther <mguenthe@uos.de>
  *
  */
 
-#ifndef SCAN_AND_CLOUD_PARSER_H_
-#define SCAN_AND_CLOUD_PARSER_H_
+#ifndef SICK_TIM__ABSTRACT_PARSER_HPP_
+#define SICK_TIM__ABSTRACT_PARSER_HPP_
 
-#include "sick_tim/abstract_parser.h"
-#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include "sick_tim/sick_tim_config.hpp"
 
 namespace sick_tim
 {
 
-
-class ScanAndCloudParser : public AbstractParser
+enum ExitCode
 {
-public:
-  ScanAndCloudParser();
-  virtual ~ScanAndCloudParser();
-
-  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &scan, sensor_msgs::PointCloud2 &cloud) = 0;
-
-  virtual int parse_datagram(char* datagram, size_t datagram_length, SickTimConfig &config,
-                             sensor_msgs::LaserScan &msg);
-
+  ExitSuccess = 0,
+  ExitError = 1,       // non-fatal error, retry
+  ExitFatal = 2        // fatal error, exit
 };
 
-} /* namespace sick_tim */
-#endif /* SCAN_AND_CLOUD_PARSER_H_ */
+class AbstractParser
+{
+public:
+  AbstractParser();
+  virtual ~AbstractParser();
+
+  virtual int parse_datagram(
+    char * datagram, size_t datagram_length, SickTimConfig & config,
+    sensor_msgs::msg::LaserScan & msg) = 0;
+};
+
+}  // namespace sick_tim
+#endif  // SICK_TIM__ABSTRACT_PARSER_HPP_
