@@ -82,13 +82,18 @@
             <max>${max_range}</max>
             <resolution>0.01</resolution>
           </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
         </ray>
-        <plugin name="gazebo_ros_${name}_controller" filename="libgazebo_ros_laser.so">
-          <gaussianNoise>0.005</gaussianNoise>
-          <alwaysOn>true</alwaysOn>
-          <updateRate>${update_rate}</updateRate>
-          <topicName>${ros_topic}</topicName>
-          <frameName>${link}</frameName>
+        <plugin name="gazebo_ros_${name}_controller" filename="libgazebo_ros_ray_sensor.so">
+            <ros>
+                <remapping>~/out:=${ros_topic}</remapping>
+            </ros>
+            <output_type>sensor_msgs/LaserScan</output_type>
+          <frame_name>${link}</frame_name>
         </plugin>
       </sensor>
     </gazebo>
