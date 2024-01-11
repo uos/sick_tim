@@ -16,4 +16,4 @@ sick_driver:
     frame_id: "laser"
     time_offset: -0.001
     publish_datagram: false
-    
+    auto_reboot: true
