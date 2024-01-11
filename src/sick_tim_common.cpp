@@ -79,6 +79,7 @@ SickTimCommon::SickTimCommon(
   config_.max_ang = node_->get_parameter("max_ang").as_double();
   config_.intensity = node_->get_parameter("intensity").as_bool();
   config_.skip = node_->get_parameter("skip").as_int();
+  config_.pub_topic_scan = node_->get_parameter("pub_topic_scan").as_string();
   config_.frame_id = node_->get_parameter("frame_id").as_string();
   config_.time_offset = node_->get_parameter("time_offset").as_double();
   config_.auto_reboot = node_->get_parameter("auto_reboot").as_bool();
@@ -88,7 +89,7 @@ SickTimCommon::SickTimCommon(
   }
 
   // scan publisher
-  pub_ = node_->create_publisher<sensor_msgs::msg::LaserScan>("scan", 1000);
+  pub_ = node_->create_publisher<sensor_msgs::msg::LaserScan>(config_.pub_topic_scan, 1000);
   diagnosticPub_ = new diagnostic_updater::DiagnosedPublisher<sensor_msgs::msg::LaserScan>(
     pub_, *diagnostics_,
     // frequency should be target +- 10%.

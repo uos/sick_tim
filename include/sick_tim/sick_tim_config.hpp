@@ -51,6 +51,7 @@ struct SickTimConfig
   double max_ang;
   bool intensity;
   int skip;
+  std::string pub_topic_scan;
   std::string frame_id;
   double time_offset;
   bool auto_reboot;

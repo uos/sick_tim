@@ -59,6 +59,7 @@ int main(int argc, char ** argv)
   node->declare_parameter("max_ang", 0.75 * M_PI);
   node->declare_parameter("intensity", true);
   node->declare_parameter("skip", 0);
+  node->declare_parameter("pub_topic_scan", "scan");
   node->declare_parameter("frame_id", "laser");
   node->declare_parameter("time_offset", -0.001);
   node->declare_parameter("auto_reboot", true);

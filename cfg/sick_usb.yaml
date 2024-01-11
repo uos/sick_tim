@@ -12,6 +12,7 @@ sick_driver:
     max_ang: 2.35619449019
     intensity: true
     skip: 0
+    pub_topic_scan: "scan"
     frame_id: "laser"
     time_offset: -0.001
     publish_datagram: false
