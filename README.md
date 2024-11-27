@@ -1,3 +1,5 @@
+# NOTE: This repository is end-of-life and no longer maintained. The most current fork of this repo is here: https://github.com/SICKAG/sick_scan_xd
+
 sick_tim
 ========
 
